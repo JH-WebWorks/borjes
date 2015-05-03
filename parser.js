@@ -1,6 +1,8 @@
 "use strict";
 
 var types = require('./common');
+var Tree = require('./tree');
+
 var Nothing = types.Nothing;
 
 function Parser ( grammar ) {
@@ -38,9 +40,11 @@ Parser.prototype.exhaust = function ( from, to ) {
         var rule = this.rules[i];
         var legs = this.all_legs(from, to, rule.arity);
         for (var j = 0; j<legs.length; j++) {
-            var mother = rule.apply(legs[j]);
+            var mother = rule.apply(legs[j].map(function(t) {
+                return t.node;
+            }));
             if (mother !== Nothing) {
-                cell.push(mother);
+                cell.push(new Tree(mother, legs[j]));
             }
         }
     }
@@ -49,8 +53,14 @@ Parser.prototype.exhaust = function ( from, to ) {
 Parser.prototype.input = function ( word ) {
     var w = this.lexicon[word];
     if (w === undefined) { w = Nothing; }
-    if (!w.length) { w = [ w ]; }
-    this.table[this.n] = [ w ];
+    if (!w.length) {
+        this.table[this.n] = [[ new Tree(w, word) ]];
+    } else {
+        this.table[this.n] = [];
+        this.table[this.n][0] = w.map(function(x) {
+            return new Tree(x, word);
+        });
+    }
     for (var i = this.n-1; i>=0; i--) {
         this.exhaust(i, this.n-i);
     }

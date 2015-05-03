@@ -15,7 +15,7 @@ function test(i) {
         console.log(util.inspect(p.table, { depth: null, colors: true }));
     } else {
         console.log("OK '"+English.tests[i]+"'");
-        console.log(parse[0]+'');
+        console.log(parse[0].node+'');
     }
 }
 
