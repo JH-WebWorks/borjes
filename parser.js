@@ -48,7 +48,9 @@ Parser.prototype.exhaust = function ( from, to ) {
 
 Parser.prototype.input = function ( word ) {
     var w = this.lexicon[word];
-    this.table[this.n] = [ [ w ] ];
+    if (w === undefined) { w = Nothing; }
+    if (!w.length) { w = [ w ]; }
+    this.table[this.n] = [ w ];
     for (var i = this.n-1; i>=0; i--) {
         this.exhaust(i, this.n-i);
     }
@@ -56,6 +58,7 @@ Parser.prototype.input = function ( word ) {
 };
 
 Parser.prototype.parse = function ( sentence ) {
+    this.reset();
     for (var i = 0; i<sentence.length; i++) {
         this.input ( sentence[i] );
     }

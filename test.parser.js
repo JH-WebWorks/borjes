@@ -3,16 +3,22 @@
 var util = require('util');
 
 var Parser = require('./parser');
-
 var English = require('./english');
 
 var p = new Parser(English);
 
-var parse = p.parse(['john', 'loves', 'mary']);
-console.log(parse+'');
-console.log(util.inspect(p.table, { depth: null, colors: true }));
+function test(i) {
+    var sentence = English.tests[i].split(' ');
+    var parse = p.parse(sentence);
+    if (!parse[0]) {
+        console.log("Wrong parse for '"+English.tests[i]+"'");
+        console.log(util.inspect(p.table, { depth: null, colors: true }));
+    } else {
+        console.log("OK '"+English.tests[i]+"'");
+        console.log(parse[0]+'');
+    }
+}
 
-p.reset();
-parse = p.parse(['john', 'mary', 'loves']);
-console.log(parse+'');
-console.log(util.inspect(p.table, { depth: null, colors: true }));
+for (var i=0; i<English.tests.length; i++) {
+    test(i);
+}
