@@ -2,7 +2,11 @@
 
 function Tree (node, children) {
     this.node = node;
-    this.children = [].concat(children);
+    if (!!children) {
+        this.children = [].concat(children);
+    } else {
+        this.children = [];
+    }
 }
 
 Tree.prototype.add_children = function (children) {

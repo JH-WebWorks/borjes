@@ -53,12 +53,13 @@ Parser.prototype.exhaust = function ( from, to ) {
 Parser.prototype.input = function ( word ) {
     var w = this.lexicon[word];
     if (w === undefined) { w = Nothing; }
+    var wordt = new Tree(word);
     if (!w.length) {
-        this.table[this.n] = [[ new Tree(w, word) ]];
+        this.table[this.n] = [[ new Tree(w, wordt) ]];
     } else {
         this.table[this.n] = [];
         this.table[this.n][0] = w.map(function(x) {
-            return new Tree(x, word);
+            return new Tree(x, wordt);
         });
     }
     for (var i = this.n-1; i>=0; i--) {
