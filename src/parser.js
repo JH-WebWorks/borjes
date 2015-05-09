@@ -1,6 +1,6 @@
 "use strict";
 
-var types = require('./common');
+var types = require('./types');
 var Tree = require('./tree');
 var Rule = require('./rule');
 

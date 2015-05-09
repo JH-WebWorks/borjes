@@ -1,7 +1,7 @@
 "use strict";
 
+var types = require('./types');
 var Rule = require('./rule');
-var types = require('./common');
 
 var Literal = types.Literal;
 
