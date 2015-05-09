@@ -10,17 +10,17 @@ exports.CFG = function ( cfg ) {
     var grammar = { rules: [], lexicon: {} };
 
     Object.keys(cfg.Rules).forEach(function (NT) {
-        var mother = new Literal(NT);
+        var mother = Literal(NT);
         grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {
             var children = terms.split(' ').map(function(x) {
-                return new Literal(x);
+                return Literal(x);
             });
-            return new Rule(mother, children);
+            return Rule(mother, children);
         }));
     });
 
     Object.keys(cfg.Lexicon).forEach(function (NT) {
-        var cat = new Literal(NT);
+        var cat = Literal(NT);
         var l = grammar.lexicon;
         cfg.Lexicon[NT].forEach(function(term) {
             if (l[term] === undefined) { l[term] = []; }
