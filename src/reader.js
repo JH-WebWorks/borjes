@@ -2,12 +2,13 @@
 
 var types = require('./types');
 var Rule = require('./rule');
+var Lexicon = require('./lexicon');
 
 var Literal = types.Literal;
 
 exports.CFG = function ( cfg ) {
 
-    var grammar = { rules: [], lexicon: {} };
+    var grammar = { rules: [], lexicon: Lexicon() };
 
     Object.keys(cfg.Rules).forEach(function (NT) {
         var mother = Literal(NT);
@@ -20,12 +21,7 @@ exports.CFG = function ( cfg ) {
     });
 
     Object.keys(cfg.Lexicon).forEach(function (NT) {
-        var cat = Literal(NT);
-        var l = grammar.lexicon;
-        cfg.Lexicon[NT].forEach(function(term) {
-            if (l[term] === undefined) { l[term] = []; }
-            l[term].push(cat);
-        });
+        Lexicon.inflect.call(undefined, grammar.lexicon, Literal(NT), cfg.Lexicon[NT]);
     });
 
     return grammar;

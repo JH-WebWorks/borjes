@@ -3,6 +3,7 @@
 var types = require('./types');
 var Tree = require('./tree');
 var Rule = require('./rule');
+var Lexicon = require('./lexicon');
 
 var Nothing = types.Nothing;
 var eq = types.eq;
@@ -56,7 +57,7 @@ function exhaust ( p, from, to ) {
 };
 
 function input ( p, word ) {
-    var w = p.lexicon[word];
+    var w = Lexicon.get(p.lexicon, word);
     if (w === undefined) { w = Nothing; }
     var wordt = Tree(word);
     if (!w.length) {
