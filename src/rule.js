@@ -29,7 +29,7 @@ function apply ( rule, xs ) {
             return Nothing;
         }
     }
-    if (!!rule.on.success) { rule.on.success(rule, xs); }
+    if (!!rule.on.success) { rule.on.success(rule, xs, rule.m); }
     return rule.m;
 }
 

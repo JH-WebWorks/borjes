@@ -40,6 +40,23 @@ function FStruct ( object, features ) {
 }
 primitive['fstruct'] = false;
 
+FStruct.set = function ( fs, feat, val ) {
+    var i;
+    for (i=0; i<fs.f.length; i++) {
+        if (fs.f[i] === feat) {
+            break;
+        }
+    }
+    if (i===fs.f.length) {
+        fs.f.push[feat];
+    }
+    fs.v[feat] = val;
+}
+
+FStruct.get = function ( fs, feat ) {
+    return fs.v[feat];
+}
+
 function compare_fs ( x, y ) {
     for (var i in x.f) {
         var f = x.f[i];
@@ -67,7 +84,7 @@ function eq ( x, y ) {
 }
 
 function copy ( x ) {
-    if (primitive[x.borjes]) {
+    if (typeof x !== 'object' || primitive[x.borjes]) {
         return x;
     }
     if (x.borjes === 'fstruct') {
