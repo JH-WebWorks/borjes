@@ -10,16 +10,18 @@ var eq = types.eq;
 var copy = types.copy;
 
 function unify (x, y) {
+    if (x === undefined) { return y; }
+    if (y === undefined) { return x; }
     if (eq(x, y)) {
         return copy(x);
     }
     if (eq(x, Nothing) || eq(y, Nothing)) {
         return Nothing;
     }
-    if (eq(x, Anything) || x === undefined) {
+    if (eq(x, Anything)) {
         return copy(y);
     }
-    if (eq(y, Anything) || y === undefined) {
+    if (eq(y, Anything)) {
         return copy(x);
     }
     if (x.borjes === 'fstruct' && y.borjes === 'fstruct') {
@@ -34,14 +36,14 @@ function unifyFS (x, y) {
         var f = x.f[i];
         var u = unify(x.v[f], y.v[f]);
         if (eq(u, Nothing)) { return Nothing; }
-        fs.f.push(f);
-        fs.v[f] = u;
+        r.f.push(f);
+        r.v[f] = u;
     }
     for (var j = 0; j<y.f.length; j++) {
         var f = y.f[j];
-        if (!fs.f[f]) {
-            fs.f.push(f);
-            fs.v[f] = copy(y.v[f]);
+        if (!r.f[f]) {
+            r.f.push(f);
+            r.v[f] = copy(y.v[f]);
         }
     }
     return r;

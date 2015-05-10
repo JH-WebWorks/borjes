@@ -24,10 +24,13 @@ function FStruct ( object, features ) {
     if (object === undefined) {
         features = [];
     }
+    if (features === undefined) {
+        features = Object.keys(object);
+    }
     var r = {
         borjes: 'fstruct',
-        f: features || Object.keys(object),
-        v: {},
+        f: features,
+        v: {}
     };
     for (var i in r.f) {
         var f = r.f[i];
@@ -36,6 +39,16 @@ function FStruct ( object, features ) {
     return r;
 }
 primitive['fstruct'] = false;
+
+function compare_fs ( x, y ) {
+    for (var i in x.f) {
+        var f = x.f[i];
+        if (y.v[f]!==undefined && !compare(x.v[f], y.v[f])) {
+            return false;
+        }
+    }
+    return true;
+};
 
 function eq ( x, y ) {
     if (x === y) {
@@ -62,11 +75,25 @@ function copy ( x ) {
     }
 }
 
+function compare ( x, y ) {
+    if (x.borjes !== y.borjes) {
+        return false;
+    }
+    if (primitive[x.borjes]) {
+        return eq(x, y);
+    }
+    if (x.borjes === 'fstruct') {
+        return compare_fs(x, y);
+    }
+    return false;
+}
+
 module.exports = {
     Nothing: Nothing,
     Anything: Anything,
     Literal: Literal,
     FStruct: FStruct,
     eq: eq,
-    copy: copy
+    copy: copy,
+    compare: compare
 };
