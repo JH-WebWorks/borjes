@@ -5,6 +5,7 @@ var unify = require('./unify');
 
 var Nothing = types.Nothing;
 var eq = types.eq;
+var copy = types.copy;
 
 function Rule ( mother, daughters, name, events ) {
     return {
@@ -29,8 +30,9 @@ function apply ( rule, xs ) {
             return Nothing;
         }
     }
-    if (!!rule.on.success) { rule.on.success(rule, xs, rule.m); }
-    return rule.m;
+    var m = copy(rule.m);
+    if (!!rule.on.success) { rule.on.success(rule, xs, m); }
+    return m;
 }
 
 Rule.apply = apply;
