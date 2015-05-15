@@ -7,6 +7,8 @@ var Nothing = types.Nothing;
 var Anything = types.Anything;
 var Literal = types.Literal;
 var FStruct = types.FStruct;
+var World = types.World;
+var Variable = types.Variable;
 var eq = types.eq;
 var compare = types.compare;
 
@@ -57,3 +59,12 @@ assert(!compare(f23, f24));
 assert(!compare(f24, f12));
 assert(eq(f34, Nothing));
 assert(eq(U(f12, f24), Nothing));
+
+/* Variables */
+
+var w1 = World();
+var fs1 = FStruct();
+var fs2 = FStruct();
+World.bind(w1, fs1);
+FStruct.set(fs1, 'feature', Variable.new(w1, Literal('value')));
+console.dir(fs1, { depth: null });

@@ -20,6 +20,8 @@ function Literal ( string ) {
 };
 primitive['literal'] = true;
 
+// FEATURE STRUCTURE
+
 function FStruct ( object, features ) {
     if (object === undefined) {
         features = [];
@@ -47,8 +49,8 @@ FStruct.set = function ( fs, feat, val ) {
             break;
         }
     }
-    if (i===fs.f.length) {
-        fs.f.push[feat];
+    if (i==fs.f.length) {
+        fs.f.push(feat);
     }
     fs.v[feat] = val;
 }
@@ -67,6 +69,77 @@ function compare_fs ( x, y ) {
     return true;
 };
 
+function copy_fs ( x, map ) {
+    var r = {
+        borjes: 'fstruct',
+        f: x.f.slice(),
+        v: {}
+    };
+    for (var i in r.f) {
+        var f = r.f[i];
+        r.v[f] = copy(x.v[f], map);
+    }
+    return r;
+}
+
+// WORLD
+
+function World () {
+    return {
+        borjes: 'world',
+        values: []
+    };
+}
+
+World.get = function ( world, index ) {
+    return world.values[index];
+};
+
+World.bind = function ( world, x ) {
+    x.borjes_bound = world;
+};
+
+World.put = function ( world, x ) {
+    world.values.push(x);
+    return world.values.length-1;
+};
+
+World.set = function ( world, index, x ) {
+    world.values[index] = x;
+};
+
+function copy_world ( x, map ) {
+    return {
+        borjes: 'world',
+        values: x.values.map(function(v) {
+            return copy(v, map);
+        })
+    };
+}
+
+// VARIABLE
+
+function Variable ( index ) {
+    return {
+        borjes: 'variable',
+        index: index!==undefined?index:-1
+    };
+}
+
+Variable.new = function ( world, value ) {
+    var i = World.put(world, value);
+    return Variable(i);
+};
+
+function copy_variable ( x, map ) {
+    return {
+        borjes: 'variable',
+        index: x.index>=0?map[x.index]:-1
+    };
+}
+
+// FUNCTIONS
+
 function eq ( x, y ) {
     if (x === y) {
         return true;
@@ -83,13 +156,23 @@ function eq ( x, y ) {
     return false;
 }
 
-function copy ( x ) {
+function copy ( x, map ) {
     if (typeof x !== 'object' || primitive[x.borjes]) {
         return x;
     }
-    if (x.borjes === 'fstruct') {
-        return FStruct(x.v);
+    if (x.borjes === 'world') {
+        return copy_world(x, map);
     }
+    var c = Nothing;
+    if (x.borjes === 'fstruct') {
+        c = copy_fs(x, map);
+    } else if (x.borjes === 'variable') {
+        c = copy_variable(x, map);
+    }
+    if (x.borjes_bound !== undefined) {
+        World.bind(copy(x.borjes_bound, map), c);
+    }
+    return c;
 }
 
 function compare ( x, y ) {
@@ -110,6 +193,8 @@ module.exports = {
     Anything: Anything,
     Literal: Literal,
     FStruct: FStruct,
+    Variable: Variable,
+    World: World,
     eq: eq,
     copy: copy,
     compare: compare
