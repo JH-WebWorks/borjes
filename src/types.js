@@ -59,10 +59,10 @@ FStruct.get = function ( fs, feat ) {
     return fs.v[feat];
 }
 
-function compare_fs ( x, y ) {
+function compare_fs ( x, y, wx, wy ) {
     for (var i in x.f) {
         var f = x.f[i];
-        if (y.v[f]!==undefined && !compare(x.v[f], y.v[f])) {
+        if (y.v[f]!==undefined && !compare(x.v[f], y.v[f], wx, wy)) {
             return false;
         }
     }
@@ -119,22 +119,29 @@ function copy_world ( x, map ) {
 
 // VARIABLE
 
-function Variable ( index ) {
+function Variable ( world, value ) {
     return {
         borjes: 'variable',
-        index: index!==undefined?index:-1
+        index: World.put(world, value)
     };
 }
 
-Variable.new = function ( world, value ) {
-    var i = World.put(world, value);
-    return Variable(i);
-};
-
-function copy_variable ( x, map ) {
+Variable.copy = function ( x, map ) {
+    var i;
+    if (map) {
+        if (map[x.index]) {
+            i = map[x.index];
+        } else {
+            i = World.put(map.nw,
+                copy(World.get(map.w, x.index),map));
+            map[x.index] = i;
+        }
+    } else {
+        i = x.index;
+    }
     return {
         borjes: 'variable',
-        index: x.index>=0?map[x.index]:-1
+        index: i
     };
 }
 
@@ -167,7 +174,7 @@ function copy ( x, map ) {
     if (x.borjes === 'fstruct') {
         c = copy_fs(x, map);
     } else if (x.borjes === 'variable') {
-        c = copy_variable(x, map);
+        c = Variable.copy(x, map);
     }
     if (x.borjes_bound !== undefined) {
         World.bind(copy(x.borjes_bound, map), c);
@@ -175,7 +182,15 @@ function copy ( x, map ) {
     return c;
 }
 
-function compare ( x, y ) {
+function compare ( x, y, worldx, worldy ) {
+    if (x.borjes_bound) { worldx = x.borjes_bound; }
+    if (y.borjes_bound) { worldy = y.borjes_bound; }
+    if (x.borjes === 'variable') {
+        return compare(World.get(worldx, x.index), y, worldx, worldy);
+    }
+    if (y.borjes === 'variable') {
+        return compare(x, World.get(worldy, y.index), worldx, worldy);
+    }
     if (x.borjes !== y.borjes) {
         return false;
     }
@@ -183,7 +198,7 @@ function compare ( x, y ) {
         return eq(x, y);
     }
     if (x.borjes === 'fstruct') {
-        return compare_fs(x, y);
+        return compare_fs(x, y, worldx, worldy);
     }
     return false;
 }

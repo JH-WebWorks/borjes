@@ -63,8 +63,33 @@ assert(eq(U(f12, f24), Nothing));
 /* Variables */
 
 var w1 = World();
-var fs1 = FStruct();
-var fs2 = FStruct();
-World.bind(w1, fs1);
-FStruct.set(fs1, 'feature', Variable.new(w1, Literal('value')));
-console.dir(fs1, { depth: null });
+var w2 = World();
+var bfs1 = FStruct({ cat: noun });
+var bfs2 = FStruct({ phon: pepa });
+World.bind(w1, bfs1);
+World.bind(w2, bfs2);
+FStruct.set(bfs1, 'phon', Variable(w1, pepa));
+FStruct.set(bfs2, 'cat', Variable(w2, noun));
+
+var bfs12 = U(bfs1, bfs2);
+
+assert(eq(U(Nothing, bfs1), Nothing));
+assert(compare(bfs1, fs1));
+assert(compare(bfs2, fs2));
+assert(compare(bfs12, fs1));
+assert(!compare(bfs12, f24));
+
+var rec1 = FStruct();
+var rec2 = FStruct();
+var wrec2 = World();
+FStruct.set(rec1, 'child', FStruct({ var1: pepa, var2: kozu }));
+World.bind(wrec2, rec2);
+var top = Variable(wrec2);
+FStruct.set(rec2, 'child', FStruct({ var2: top }));
+FStruct.set(rec2, 'top', top);
+
+var rec12 = U(rec1, rec2);
+var topkozu = FStruct({top: kozu});
+var toppepa = FStruct({top: pepa});
+assert(eq(U(toppepa, rec12), Nothing));
+assert(!eq(U(topkozu, rec12), Nothing));

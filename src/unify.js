@@ -12,6 +12,12 @@ var eq = types.eq;
 var copy = types.copy;
 
 function unify (x, y, newworld, leftmap, rightmap) {
+    if (x !== undefined && x.borjes === 'variable') {
+        return unifyLeftVar(x, y, newworld, leftmap, rightmap);
+    }
+    if (y !== undefined && y.borjes === 'variable') {
+        return unifyLeftVar(y, x, newworld, rightmap, leftmap);
+    }
     if (x === undefined) { return copy(y, rightmap); }
     if (y === undefined) { return copy(x, leftmap); }
     if (eq(x, y)) {
@@ -32,29 +38,25 @@ function unify (x, y, newworld, leftmap, rightmap) {
     if (x.borjes === 'fstruct' && y.borjes === 'fstruct') {
         return unifyFS(x, y, newworld, leftmap, rightmap);
     }
-    if (x.borjes === 'variable') {
-        return unifyLeftVar(x, y, newworld, leftmap, rightmap);
-    }
-    if (y.borjes === 'variable') {
-        return unifyLeftVar(y, x, newworld, rightmap, leftmap);
-    }
     return Nothing;
 }
 
 function unifyFS (x, y, nw, lm, rm) {
     var r = FStruct();
+    var unified = {};
     for (var i = 0; i<x.f.length; i++) {
         var f = x.f[i];
         var u = unify(x.v[f], y.v[f], nw, lm, rm);
         if (eq(u, Nothing)) { return Nothing; }
         r.f.push(f);
         r.v[f] = u;
+        unified[f] = true;
     }
     for (var j = 0; j<y.f.length; j++) {
         var f = y.f[j];
-        if (!r.f[f]) {
+        if (!unified[f]) {
             r.f.push(f);
-            r.v[f] = copy(y.v[f], rm);
+            r.v[f] = unify(x.v[f], y.v[f], nw, lm, rm);
         }
     }
     return r;
@@ -63,9 +65,12 @@ function unifyFS (x, y, nw, lm, rm) {
 function unifyBound (x, y, leftmap, rightmap) {
     if (leftmap === undefined) { leftmap = {}; }
     if (rightmap === undefined) { rightmap = {}; }
+    var newworld = World();
     leftmap.w = x.borjes_bound;
+    leftmap.nw = newworld;
     rightmap.w = y.borjes_bound;
-    var u = unify(x, y, World(), leftmap, rightmap);
+    rightmap.nw = newworld;
+    var u = unify(x, y, newworld, leftmap, rightmap);
     if (eq(u, Nothing)) { return Nothing; }
     World.bind(newworld, u);
     return u;
@@ -73,23 +78,20 @@ function unifyBound (x, y, leftmap, rightmap) {
 
 function unifyLeftVar (x, y, nw, lm, rm) {
     var v;
-    if (x.index === -1) {
-        v = undefined;
-    } else if (lm[x.index]) {
+    if (lm[x.index] !== undefined) {
         v = World.get(nw, lm[x.index]);
     } else {
         v = World.get(lm.w, x.index);
     }
     var u = unify(v, y, nw, lm, rm);
     if (eq(u, Nothing)) { return Nothing; }
-    var i = World.put(nw, u);
-    if (lm[x.index]) {
-        World.set(nw, lm[x.index], Variable(i));
-        return Variable(lm[x.index]);
+    var r = Variable(nw, u);
+    if (lm[x.index] !== undefined) {
+        World.set(nw, lm[x.index], r);
     } else {
-        lm[x.index] = i;
-        return Variable(i);
+        lm[x.index] = r.index;
     }
+    return r;
 }
 
 module.exports = unify;
