@@ -140,7 +140,7 @@ function Variable ( world, value ) {
 Variable.copy = function ( x, map ) {
     var i;
     if (map) {
-        if (map[x.index]) {
+        if (map[x.index] !== undefined) {
             i = map[x.index];
         } else {
             i = World.put(map.nw,
@@ -215,7 +215,7 @@ function copy ( x, map ) {
         c = Predicate.copy(x, map);
     }
     if (x.borjes_bound !== undefined) {
-        World.bind(copy(x.borjes_bound, map), c);
+        World.bind(map.nw, c);
     }
     return c;
 }

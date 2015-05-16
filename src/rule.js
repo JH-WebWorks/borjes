@@ -24,7 +24,7 @@ function apply ( rule, xs ) {
         if (!!rule.on.fail) { rule.on.fail(rule, xs, -1); }
         return Nothing;
     }
-    var w = copy(rule.m.borjes_bound);
+    var w = World();
     var lm = { w: rule.m.borjes_bound, nw: w };
     for (var i=0; i<xs.length; i++) {
         var u = unify(rule.d[i], xs[i], w, lm, { w: xs[i].borjes_bound, nw: w });
@@ -34,7 +34,6 @@ function apply ( rule, xs ) {
         }
     }
     var m = copy(rule.m, lm);
-    World.bind(w, m);
     if (!!rule.on.success) { rule.on.success(rule, xs, m); }
     return m;
 }
