@@ -27,15 +27,14 @@ Lexicon.get = function ( l, word ) {
     }
 };
 
-// TODO intelligent morphology / lexical rules
+// morphology is a function that gets a word and produces an array of pairs
+// [ word, lexical entry ]
 Lexicon.inflect = function ( l, morphology, words ) {
-    var i = 0;
-    if (!words.length) {
-        words = arguments;
-        i = 2;
-    }
-    for (; i<words.length; i++) {
-        Lexicon.add(l, words[i], morphology);
+    for (var i=0; i<words.length; i++) {
+        var r = morphology(words[i]);
+        for (var j=0;j<r.length;j++) {
+            Lexicon.add(l, r[j][0], r[j][1]);
+        }
     }
 };
 
