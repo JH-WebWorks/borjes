@@ -3,11 +3,13 @@
 var types = require('./types');
 var Rule = require('./rule');
 var Lexicon = require('./lexicon');
+var parse_pars = require('./parenthesis');
 
 var Literal = types.Literal;
 var FStruct = types.FStruct;
 var Variable = types.Variable;
 var World = types.World;
+var Predicate = types.Predicate;
 
 exports.CFG = function ( cfg ) {
 
@@ -30,109 +32,29 @@ exports.CFG = function ( cfg ) {
     return grammar;
 };
 
-exports.LCFG = function ( cfg ) {
-
-    var grammar = { rules: [], lexicon: Lexicon() };
-
-    function lexr (rule, daughters, mother) {
-        FStruct.set(mother, 'lex', FStruct.get(daughters[1], 'lex'));
-    }
-
-    function lexl (rule, daughters, mother) {
-        FStruct.set(mother, 'lex', FStruct.get(daughters[0], 'lex'));
-    }
-
-    Object.keys(cfg.Rules).forEach(function (NT) {
-        var mother = FStruct({ 'symbol': Literal(NT) });
-        grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {
-            var children = terms.split(' ');
-            var prob = 0;
-            var i;
-            for (i=0; i<children.length-1; i++) {
-                children[i] = FStruct({ 'symbol': Literal(children[i]) });
-            }
-            var rs = /^\((r|l)\)$/.exec(children[i]);
-            children.pop();
-            return Rule(mother, children, undefined, { success: rs[1]=='r'?lexr:lexl });
-        }));
-    });
-
-    Object.keys(cfg.Lexicon).forEach(function (NT) {
-        var cat = Literal(NT);
-        cfg.Lexicon[NT].forEach(function (term) {
-            Lexicon.add(grammar.lexicon, term, FStruct({ symbol: cat, lex: term }));
-        });
-    });
-
-    return grammar;
-};
-
-exports.PCFG = function ( cfg ) {
-
-    var grammar = { rules: [], lexicon: Lexicon() };
-
-    function mProb (rule, daughters, mother) {
-        FStruct.set(mother, 'prob', daughters.reduce(function(p, d) {
-            return p*FStruct.get(d, 'prob');
-        }, FStruct.get(mother, 'prob')));
-    }
-
-    Object.keys(cfg.Rules).forEach(function (NT) {
-        grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {
-            var children = terms.split(' ');
-            var prob = 1;
-            for (var i=0; i<children.length; i++) {
-                if (i==children.length-1) {
-                    var rs = /^\((.+)\)$/.exec(children[i]);
-                    if (rs) {
-                        prob = parseFloat(rs[1]);
-                        children.pop();
-                        break;
-                    }
-                }
-                children[i] = FStruct({ 'symbol': Literal(children[i]) });
-            }
-            var mother = FStruct({ 'symbol': Literal(NT), prob: prob });
-            return Rule(mother, children, undefined, { success: mProb });
-        }));
-    });
-
-    Object.keys(cfg.Lexicon).forEach(function (NT) {
-        var cat = Literal(NT);
-        cfg.Lexicon[NT].forEach(function (term) {
-            var rs = /^(.+)\((.+)\)$/.exec(term);
-            var prob = 1;
-            if (rs) {
-                term = rs[1];
-                prob = parseFloat(rs[2]);
-            }
-            Lexicon.add(grammar.lexicon, term, FStruct({ symbol: cat, prob: prob }));
-        });
-    });
-
-    return grammar;
-};
-
 exports.ECFG = function ( cfg ) {
 
-    function parse_pars (string, world, var_names) {
-        var res = /^([^(]+)(\(.+\))?$/.exec(string);
-        var ret = [res[1]];
-        if (res[2]) {
-            if (!var_names[res[2]]) {
-                var_names[res[2]] = Variable(world);
+    function make_vars ( obj, world, names ) {
+        if (obj.length == 1) { // variable
+            var n = obj[0];
+            if (!names[n]) {
+                names[n] = Variable(world);
             }
-            ret.push(var_names[res[2]]);
+            return names[n];
+        } else { // predicate
+            var params = obj.slice(1).map(function (o) {
+                return make_vars(o, world, names);
+            });
+            return Predicate(obj[0], params);
         }
-        return ret;
     }
 
-    function parse_symbol (string, world, var_names) {
-        var ps = parse_pars(string, world, var_names);
+    function parse_symbol ( string, world, names ) {
+        var ps = parse_pars(string);
         var symbol = FStruct({ 'symbol': Literal(ps[0]) });
         if (ps.length>1) {
             for (var i=1; i<ps.length; i++) {
-                FStruct.set(symbol, i-1, ps[i]);
+                FStruct.set(symbol, i-1, make_vars(ps[i], world, names));
             }
         }
         return symbol;
@@ -143,12 +65,12 @@ exports.ECFG = function ( cfg ) {
     Object.keys(cfg.Rules).forEach(function (NT) {
         grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {
             var w = World();
-            var var_names = {};
-            var mother = parse_symbol(NT, w, var_names);
+            var names = {};
+            var mother = parse_symbol(NT, w, names);
             var children = terms.split(' ');
             var daughters = [];
             for (var i=0; i<children.length; i++) {
-                daughters.push(parse_symbol(children[i], w, var_names));
+                daughters.push(parse_symbol(children[i], w, names));
             }
             World.bind(w, mother);
             return Rule(mother, daughters);
@@ -158,7 +80,12 @@ exports.ECFG = function ( cfg ) {
     Object.keys(cfg.Lexicon).forEach(function (NT) {
         var cat = Literal(NT);
         cfg.Lexicon[NT].forEach(function (term) {
-            Lexicon.add(grammar.lexicon, term, FStruct({ symbol: cat, '0': term }));
+            var fs = parse_pars(term);
+            var r = FStruct({ symbol: cat, '0': fs[0] });
+            for (var j=1; j<fs.length; j++) {
+                FStruct.set(r, j, fs[j][0]);
+            }
+            Lexicon.add(grammar.lexicon, fs[0], r);
         });
     });
 

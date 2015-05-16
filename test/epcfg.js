@@ -6,10 +6,13 @@ var yaml = require('js-yaml');
 
 var Parser = require('../src/parser');
 var Read = require('../src/reader');
-var FStruct = require('../src/types').FStruct;
-var Nothing = require('../src/types').Nothing;
+var types = require('../src/types');
+var FStruct = types.FStruct;
+var Nothing = types.Nothing;
+var World = types.World;
 
-var grammar = Read.PCFG(yaml.safeLoad(fs.readFileSync('english.pcfg.yml')));
+
+var grammar = Read.ECFG(yaml.safeLoad(fs.readFileSync('english.epcfg.yml')));
 var sentences = fs.readFileSync('sentences.txt', 'utf8').split('\n');
 
 var p = Parser(grammar);
@@ -24,9 +27,11 @@ function test(i) {
     } else {
         console.log("OK '"+sentences[i]+"'");
         var detail = '';
-        for (var i = 0; i<parse.length; i++) {
-            detail += ' '+FStruct.get(parse[0].node, 'symbol').s +
-                      '('+FStruct.get(parse[0].node, 'prob') +')';
+        for (var j = 0; j<parse.length; j++) {
+            var pn = parse[j].node;
+            var head = World.resolve(pn.borjes_bound, FStruct.get(pn, '0'));
+            var prob = World.resolve(pn.borjes_bound, FStruct.get(pn, '1'));
+            detail += ' '+FStruct.get(pn, 'symbol').s + '(' + head+','+prob +')';
         }
         console.log(detail);
     }

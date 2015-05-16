@@ -95,9 +95,13 @@ World.get = function ( world, index ) {
     return world.values[index];
 };
 
-World.resolve = function ( world, x ) {
+World.resolve = function ( world, x, map ) {
     while (typeof x === 'object' && x.borjes === 'variable') {
-        x = world.values[x.index];
+        if (map) {
+            x = world.values[map[x.index]];
+        } else {
+            x = world.values[x.index];
+        }
     }
     return x;
 };
@@ -152,6 +156,31 @@ Variable.copy = function ( x, map ) {
     };
 }
 
+// PREDICATE
+
+//TODO general case
+
+function Predicate ( name, params ) {
+    return {
+        borjes: 'predicate',
+        params: params,
+        f: function (x, y) {
+            x = x!==undefined?x:1;
+            y = y!==undefined?y:1;
+            return parseFloat(x)*parseFloat(y);
+        }
+    };
+}
+
+// actually applies it
+Predicate.copy = function ( pred, map ) {
+    var args = [];
+    for (var i=0; i<pred.params.length; i++) {
+        args.push(World.resolve(map.nw, pred.params[i], map));
+    }
+    return pred.f.apply(null, args);
+}
+
 // FUNCTIONS
 
 function eq ( x, y ) {
@@ -182,6 +211,8 @@ function copy ( x, map ) {
         c = copy_fs(x, map);
     } else if (x.borjes === 'variable') {
         c = Variable.copy(x, map);
+    } else if (x.borjes === 'predicate') {
+        c = Predicate.copy(x, map);
     }
     if (x.borjes_bound !== undefined) {
         World.bind(copy(x.borjes_bound, map), c);
@@ -217,6 +248,7 @@ module.exports = {
     FStruct: FStruct,
     Variable: Variable,
     World: World,
+    Predicate: Predicate,
     eq: eq,
     copy: copy,
     compare: compare
