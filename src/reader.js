@@ -6,6 +6,8 @@ var Lexicon = require('./lexicon');
 
 var Literal = types.Literal;
 var FStruct = types.FStruct;
+var Variable = types.Variable;
+var World = types.World;
 
 exports.CFG = function ( cfg ) {
 
@@ -105,6 +107,58 @@ exports.PCFG = function ( cfg ) {
                 prob = parseFloat(rs[2]);
             }
             Lexicon.add(grammar.lexicon, term, FStruct({ symbol: cat, prob: prob }));
+        });
+    });
+
+    return grammar;
+};
+
+exports.ECFG = function ( cfg ) {
+
+    function parse_pars (string, world, var_names) {
+        var res = /^([^(]+)(\(.+\))?$/.exec(string);
+        var ret = [res[1]];
+        if (res[2]) {
+            if (!var_names[res[2]]) {
+                var_names[res[2]] = Variable(world);
+            }
+            ret.push(var_names[res[2]]);
+        }
+        return ret;
+    }
+
+    function parse_symbol (string, world, var_names) {
+        var ps = parse_pars(string, world, var_names);
+        var symbol = FStruct({ 'symbol': Literal(ps[0]) });
+        if (ps.length>1) {
+            for (var i=1; i<ps.length; i++) {
+                FStruct.set(symbol, i-1, ps[i]);
+            }
+        }
+        return symbol;
+    }
+
+    var grammar = { rules: [], lexicon: Lexicon() };
+
+    Object.keys(cfg.Rules).forEach(function (NT) {
+        grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {
+            var w = World();
+            var var_names = {};
+            var mother = parse_symbol(NT, w, var_names);
+            var children = terms.split(' ');
+            var daughters = [];
+            for (var i=0; i<children.length; i++) {
+                daughters.push(parse_symbol(children[i], w, var_names));
+            }
+            World.bind(w, mother);
+            return Rule(mother, daughters);
+        }));
+    });
+
+    Object.keys(cfg.Lexicon).forEach(function (NT) {
+        var cat = Literal(NT);
+        cfg.Lexicon[NT].forEach(function (term) {
+            Lexicon.add(grammar.lexicon, term, FStruct({ symbol: cat, '0': term }));
         });
     });
 

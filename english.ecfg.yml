@@ -1,0 +1,36 @@
+%YAML 1.2
+--- # Simple English Grammar
+Rules:
+    S(lex):
+    - NP VP(lex)
+    - S(lex) ConjS
+    NP(lex):
+    - Det NP(lex)
+    - Adj NP(lex)
+    - NP(lex) ToVP
+    - NP(lex) PP
+    - NP(lex) REL
+    VP(lex):
+    - Adv VP(lex)
+    - VP(lex) Adv
+    - VP(lex) NP
+    - VP(lex) Adj
+    - VP(lex) PP
+    PP(lex):
+    - Prep NP(lex)
+    REL(lex):
+    - That VP(lex)
+    ConjS(lex):
+    - Conj S(lex)
+    ToVP(lex):
+    - To VP(lex)
+Lexicon:
+    NP: [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
+    VP: [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]
+    Conj: [ and ]
+    To: [ to ]
+    That: [ that ]
+    Det: [ the, a, his ]
+    Adj: [ brown, grocery, short, good, "John's" ]
+    Adv: [ deeply, quickly, correctly ]
+    Prep: [ to, for, like ]

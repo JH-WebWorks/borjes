@@ -84,7 +84,7 @@ function unifyLeftVar (x, y, nw, lm, rm) {
         v = World.get(lm.w, x.index);
     }
     var u = unify(v, y, nw, lm, rm);
-    if (eq(u, Nothing)) { return Nothing; }
+    if (u !== undefined && eq(u, Nothing)) { return Nothing; }
     var r = Variable(nw, u);
     if (lm[x.index] !== undefined) {
         World.set(nw, lm[x.index], r);

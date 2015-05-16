@@ -95,6 +95,13 @@ World.get = function ( world, index ) {
     return world.values[index];
 };
 
+World.resolve = function ( world, x ) {
+    while (typeof x === 'object' && x.borjes === 'variable') {
+        x = world.values[x.index];
+    }
+    return x;
+};
+
 World.bind = function ( world, x ) {
     x.borjes_bound = world;
 };
