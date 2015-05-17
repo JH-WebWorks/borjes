@@ -6,10 +6,11 @@
  * and returns them as arrays
  *     [ word, exp, exp, ... ]
  * of course subexpressions are also arrays
+ * understands (a bit) double quotation marks
  */
 function strtok ( string, state ) {
     if (state.r === undefined) {
-        state.r = new RegExp('[^,()]+|\\)|\\(|,', 'g');
+        state.r = new RegExp('[^,()"]+|\\)|\\(|,|("[^"]+")', 'g');
     }
     if (state.pb !== undefined) {
         var pb = state.pb;
@@ -23,7 +24,11 @@ function strtok ( string, state ) {
         case '(': return { t: '(' };
         case ',': return { t: ',' };
     }
-    return { t: 'WORD', w: x[0] };
+    var w = x[0];
+    if (w.charAt(0)=='"') {
+        w = w.slice(1,-1);
+    }
+    return { t: 'WORD', w: w };
 }
 
 function error ( string, tok ) {
