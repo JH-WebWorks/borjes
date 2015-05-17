@@ -95,13 +95,9 @@ World.get = function ( world, index ) {
     return world.values[index];
 };
 
-World.resolve = function ( world, x, map ) {
+World.resolve = function ( world, x ) {
     while (typeof x === 'object' && x.borjes === 'variable') {
-        if (map) {
-            x = world.values[map[x.index]];
-        } else {
-            x = world.values[x.index];
-        }
+        x = world.values[x.index];
     }
     return x;
 };
@@ -176,7 +172,7 @@ Predicate.create = function ( name, func ) {
 Predicate.copy = function ( pred, map ) {
     var args = [];
     for (var i=0; i<pred.params.length; i++) {
-        args.push(World.resolve(map.nw, pred.params[i], map));
+        args.push(World.resolve(map.nw, Variable.copy(pred.params[i], map)));
     }
     return predicates[pred.name].apply(null, args);
 }

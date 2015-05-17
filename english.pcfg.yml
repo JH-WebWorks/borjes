@@ -7,11 +7,13 @@ Predicates:
         if (x===undefined) { x = 1; }
         if (y===undefined) { y = 1; }
         return x * y;
+    Concat: !js/function >
+        return arguments[0]+' '+arguments[1];
 
 Rules:
-    S(lex,Prod(prob1,prob2)):
-    - NP(_,prob2) VP(lex,prob1)
-    - S(lex,prob1) ConjS(_,prob2)
+    S(Concat(a,b),Prod(prob1,prob2)):
+    - NP(a,prob1) VP(b,prob2)
+    - S(a,prob1) ConjS(b,prob2)
 
     NP(lex,Prod(prob1,prob2)):
     - Det(_,prob1) NP(lex,prob2)
@@ -43,9 +45,9 @@ Lexicon:
     NP: [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
     VP: [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]
     Conj: [ and ]
-    To: [ "to(0.8)" ]
+    To: [ to(0.8) ]
     That: [ that ]
     Det: [ the, a, his ]
     Adj: [ brown, grocery, short, good, "John's" ]
     Adv: [ deeply, quickly, correctly ]
-    Prep: [ "to(0.2)", for, like ]
+    Prep: [ to(0.2), for, like ]
