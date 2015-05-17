@@ -4,6 +4,7 @@ var types = require('./types');
 var Rule = require('./rule');
 var Lexicon = require('./lexicon');
 var parse_pars = require('./parenthesis');
+var yaml = require('js-yaml');
 
 var Literal = types.Literal;
 var FStruct = types.FStruct;
@@ -11,7 +12,22 @@ var Variable = types.Variable;
 var World = types.World;
 var Predicate = types.Predicate;
 
-exports.CFG = function ( cfg ) {
+var YamlPredicate = new yaml.Type('!js/function', {
+    kind: 'scalar',
+    resolve: function (data) { return data !== null; },
+    construct: function (data) {
+        return new Function(data);
+    }
+});
+
+var BORJES_SCHEMA = new yaml.Schema({
+    include: [ yaml.DEFAULT_SAFE_SCHEMA ],
+    explicit: [ YamlPredicate ]
+});
+
+exports.CFG = function ( description ) {
+
+    var cfg = yaml.load(description, { schema: BORJES_SCHEMA });
 
     function make_vars ( obj, world, names ) {
         if (obj.length == 1) { // variable
@@ -40,6 +56,13 @@ exports.CFG = function ( cfg ) {
     }
 
     var grammar = { rules: [], lexicon: Lexicon() };
+
+    var preds = cfg.Predicates;
+    if (preds) {
+        Object.keys(preds).forEach(function (name) {
+            Predicate.create(name, preds[name]);
+        });
+    }
 
     Object.keys(cfg.Rules).forEach(function (NT) {
         grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {

@@ -158,18 +158,18 @@ Variable.copy = function ( x, map ) {
 
 // PREDICATE
 
-//TODO general case
+var predicates = {};
 
 function Predicate ( name, params ) {
     return {
         borjes: 'predicate',
         params: params,
-        f: function (x, y) {
-            x = x!==undefined?x:1;
-            y = y!==undefined?y:1;
-            return parseFloat(x)*parseFloat(y);
-        }
+        name: name
     };
+}
+
+Predicate.create = function ( name, func ) {
+    predicates[name] = func;
 }
 
 // actually applies it
@@ -178,7 +178,7 @@ Predicate.copy = function ( pred, map ) {
     for (var i=0; i<pred.params.length; i++) {
         args.push(World.resolve(map.nw, pred.params[i], map));
     }
-    return pred.f.apply(null, args);
+    return predicates[pred.name].apply(null, args);
 }
 
 // FUNCTIONS

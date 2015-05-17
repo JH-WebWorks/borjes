@@ -1,29 +1,44 @@
 %YAML 1.2
 --- # Simple English Grammar
+Predicates:
+    Prod: !js/function |
+        x = arguments[0];
+        y = arguments[1];
+        if (x===undefined) { x = 1; }
+        if (y===undefined) { y = 1; }
+        return x * y;
+
 Rules:
     S(lex,Prod(prob1,prob2)):
     - NP(_,prob2) VP(lex,prob1)
     - S(lex,prob1) ConjS(_,prob2)
+
     NP(lex,Prod(prob1,prob2)):
     - Det(_,prob1) NP(lex,prob2)
     - Adj(_,prob1) NP(lex,prob2)
     - NP(lex,prob2) ToVP(_,prob1)
     - NP(lex,prob2) PP(_,prob1)
     - NP(lex,prob2) REL(_,prob1)
+
     VP(lex,Prod(prob1,prob2)):
     - Adv(_,prob1) VP(lex,prob2)
     - VP(lex,prob2) Adv(_,prob1)
     - VP(lex,prob2) NP(_,prob1)
     - VP(lex,prob2) Adj(_,prob1)
     - VP(lex,prob2) PP(_,prob1)
+
     PP(lex,Prod(prob1,prob2)):
     - Prep(_,prob1) NP(lex,prob2)
+
     REL(lex,Prod(prob1,prob2)):
     - That(_,prob1) VP(lex,prob2)
+
     ConjS(lex,Prod(prob1,prob2)):
     - Conj(_,prob1) S(lex,prob2)
+
     ToVP(lex,Prod(prob1,prob2)):
     - To(_,prob1) VP(lex,prob2)
+
 Lexicon:
     NP: [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
     VP: [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]

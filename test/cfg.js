@@ -2,7 +2,6 @@
 
 var util = require('util');
 var fs = require('fs');
-var yaml = require('js-yaml');
 
 var Parser = require('../src/parser');
 var Read = require('../src/reader');
@@ -16,7 +15,7 @@ var formatter = require('../src/formatter');
 var grammarfile = process.argv[2];
 var testfile = process.argv[3];
 
-var grammar = Read.CFG(yaml.safeLoad(fs.readFileSync(grammarfile)));
+var grammar = Read.CFG(fs.readFileSync(grammarfile));
 var sentences = fs.readFileSync(testfile, 'utf8').split('\n');
 
 var p = Parser(grammar);
