@@ -44,12 +44,12 @@ Rules:
     - To(_,prob1) VP(lex,prob2)
 
 Lexicon:
-    NP: [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
-    VP: [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]
-    Conj: [ and ]
-    To: [ to(0.8) ]
-    That: [ that ]
-    Det: [ the, a, his ]
-    Adj: [ brown, grocery, short, good, "John's" ]
-    Adv: [ deeply, quickly, correctly ]
-    Prep: [ to(0.2), for, like ]
+    NP(0,1): [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
+    VP(0,1): [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]
+    Conj(0,1): [ and ]
+    To(0,1): [ to(0.8) ]
+    That(0,1): [ that ]
+    Det(0,1): [ the, a, his ]
+    Adj(0,1): [ brown, grocery, short, good, "John's" ]
+    Adv(0,1): [ deeply, quickly, correctly ]
+    Prep(0,1): [ to(0.2), for, like ]

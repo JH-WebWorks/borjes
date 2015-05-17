@@ -25,12 +25,12 @@ Rules:
     ToVP(lex):
     - To VP(lex)
 Lexicon:
-    NP: [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
-    VP: [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]
-    Conj: [ and ]
-    To: [ to ]
-    That: [ that ]
-    Det: [ the, a, his ]
-    Adj: [ brown, grocery, short, good, "John's" ]
-    Adv: [ deeply, quickly, correctly ]
-    Prep: [ to, for, like ]
+    NP(0): [ John, Mary, dog, store, lettuce, salad, program, code, student, professor, he ]
+    VP(0): [ loves, likes, walks, runs, drives, buys, make, writes, works, comments, enjoys ]
+    Conj(0): [ and ]
+    To(0): [ to ]
+    That(0): [ that ]
+    Det(0): [ the, a, his ]
+    Adj(0): [ brown, grocery, short, good, "John's" ]
+    Adv(0): [ deeply, quickly, correctly ]
+    Prep(0): [ to, for, like ]

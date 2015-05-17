@@ -84,17 +84,17 @@ exports.CFG = function ( description ) {
     });
 
     Object.keys(cfg.Lexicon).forEach(function (NT) {
-        var cat = Literal(NT);
-        Lexicon.inflect(grammar.lexicon,
-                        function (term) {
-                            var fs = parse_pars(term);
-                            var r = FStruct({ symbol: cat, '0': fs[0] });
-                            for (var j=1; j<fs.length; j++) {
-                                FStruct.set(r, j, fs[j][0]);
-                            }
-                            return [[ fs[0], r ]];
-                        },
-                        cfg.Lexicon[NT]);
+        Lexicon.inflect(grammar.lexicon, function (term) {
+            var fs = parse_pars(term);
+            var par = parse_pars(NT);
+            var r = FStruct({ symbol: Literal(par[0]) });
+            for (var j=1; j<par.length; j++) {
+                var i = par[j][0];
+                var v = i>0?(fs[i]?fs[i][0]:undefined):fs[0];
+                FStruct.set(r, j-1, v);
+            }
+            return [[ fs[0], r ]];
+        }, cfg.Lexicon[NT]);
     });
 
     return grammar;
