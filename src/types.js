@@ -172,7 +172,12 @@ Predicate.create = function ( name, func ) {
 Predicate.copy = function ( pred, map ) {
     var args = [];
     for (var i=0; i<pred.params.length; i++) {
-        args.push(World.resolve(map.nw, Variable.copy(pred.params[i], map)));
+        var p = pred.params[i];
+        if (typeof p !== 'object' || p.borjes !== 'variable') {
+            args.push(copy(p, map));
+        } else {
+            args.push(World.resolve(map.nw, Variable.copy(p, map)));
+        }
     }
     return predicates[pred.name].apply(null, args);
 }

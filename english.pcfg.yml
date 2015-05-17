@@ -4,14 +4,16 @@ Predicates:
     Prod: !js/function |
         x = arguments[0];
         y = arguments[1];
+        z = arguments[2];
         if (x===undefined) { x = 1; }
         if (y===undefined) { y = 1; }
-        return x * y;
+        if (z===undefined) { z = 1; }
+        return x * y * z;
     Concat: !js/function >
         return arguments[0]+' '+arguments[1];
 
 Rules:
-    S(Concat(a,b),Prod(prob1,prob2)):
+    S(Concat(a,b),Prod(prob1,prob2,0.5)):
     - NP(a,prob1) VP(b,prob2)
     - S(a,prob1) ConjS(b,prob2)
 

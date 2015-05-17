@@ -29,27 +29,31 @@ exports.CFG = function ( description ) {
 
     var cfg = yaml.load(description, { schema: BORJES_SCHEMA });
 
-    function make_vars ( obj, world, names ) {
-        if (obj.length == 1) { // variable
+    function parse_vars ( obj, world, names, dont_create_vars ) {
+        if (obj.length == 1) { // variable or literal
             var n = obj[0];
-            if (!names[n]) {
+            if (names[n]) {
+                return names[n];
+            } else if (dont_create_vars) {
+                return n;
+            } else {
                 names[n] = Variable(world);
+                return names[n];
             }
-            return names[n];
         } else { // predicate
             var params = obj.slice(1).map(function (o) {
-                return make_vars(o, world, names);
+                return parse_vars(o, world, names, dont_create_vars);
             });
             return Predicate(obj[0], params);
         }
     }
 
-    function parse_symbol ( string, world, names ) {
+    function parse_symbol ( string, world, names, dont_create_vars ) {
         var ps = parse_pars(string);
         var symbol = FStruct({ 'symbol': Literal(ps[0]) });
         if (ps.length>1) {
             for (var i=1; i<ps.length; i++) {
-                FStruct.set(symbol, i-1, make_vars(ps[i], world, names));
+                FStruct.set(symbol, i-1, parse_vars(ps[i], world, names, dont_create_vars));
             }
         }
         return symbol;
@@ -68,12 +72,12 @@ exports.CFG = function ( description ) {
         grammar.rules = grammar.rules.concat(cfg.Rules[NT].map(function(terms) {
             var w = World();
             var names = {};
-            var mother = parse_symbol(NT, w, names);
             var children = terms.split(' ');
             var daughters = [];
             for (var i=0; i<children.length; i++) {
                 daughters.push(parse_symbol(children[i], w, names));
             }
+            var mother = parse_symbol(NT, w, names, true);
             World.bind(w, mother);
             return Rule(mother, daughters);
         }));
