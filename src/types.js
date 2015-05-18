@@ -40,7 +40,6 @@ function FStruct ( object, features ) {
     }
     return r;
 }
-primitive['fstruct'] = false;
 
 FStruct.set = function ( fs, feat, val ) {
     var i;
@@ -182,6 +181,79 @@ Predicate.copy = function ( pred, map ) {
     return predicates[pred.name].apply(null, args);
 }
 
+// LATTICE
+
+var lattice_names = 1;
+var lattices = {};
+function Lattice (max_elements, name) {
+    if (name === undefined) {
+        name = lattice_names++;
+    }
+    var r = {
+        borjes: 'lattice',
+        n: 0,
+        name: name,
+        nels: Math.floor((max_elements-1)/32)+1,
+        elem: {}, // from bitarray to string
+        bits: {}, // from string to bitarray
+    };
+    lattices[name] = r;
+    return r;
+}
+primitive['lattice'] = true;
+
+function to_bstr ( l, uarray ) {
+    var bstr = '';
+    for (var j=0; j<l.nels; j++) {
+        bstr += uarray[j]+'-';
+    }
+    return bstr;
+}
+
+Lattice.add = function (l, elem, subelems) {
+    var bits = new Uint32Array(l.nels);
+    var shift = l.n, w = 0;
+    for (; shift>=32; shift-=32) { w++; }
+    bits[w] |= 1 << shift;
+    if ( subelems ) {
+        for (var i = 0; i<subelems.length; i++) {
+            var toor = l.bits[subelems[i]];
+            for (var j=0; j<l.nels; j++) {
+                bits[j] |= toor[j];
+            }
+        }
+    }
+    l.n++;
+    l.bits[elem] = bits;
+    l.elem[to_bstr(l, bits)] = elem;
+}
+
+Lattice.element = function ( lattice, elem ) {
+    if (typeof lattice !== 'object') {
+        lattice = lattices[lattice];
+    }
+    return {
+        borjes: 'latticeel',
+        l: lattice.name,
+        e: elem
+    };
+}
+primitive['latticeel'] = true;
+
+Lattice.meet = function (x, y) {
+    if (x.l !== y.l) { return Nothing; }
+    var l = lattices[x.l];
+    var bits = new Uint32Array(l.nels);
+    var xbits = l.bits[x.e];
+    var ybits = l.bits[y.e];
+    for (var i = 0; i<l.nels; i++) {
+        bits[i] = xbits[i] & ybits[i];
+    }
+    var meet = l.elem[to_bstr(l, bits)];
+    if (meet === undefined) { return Nothing; }
+    return Lattice.element(l, meet);
+}
+
 // FUNCTIONS
 
 function eq ( x, y ) {
@@ -196,6 +268,9 @@ function eq ( x, y ) {
     }
     if (x.borjes === 'literal') {
         return x.s === y.s;
+    }
+    if (x.borjes === 'latticeel') {
+        return x.l === y.l && x.e === y.e;
     }
     return false;
 }
@@ -250,6 +325,7 @@ module.exports = {
     Variable: Variable,
     World: World,
     Predicate: Predicate,
+    Lattice: Lattice,
     eq: eq,
     copy: copy,
     compare: compare

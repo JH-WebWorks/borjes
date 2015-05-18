@@ -9,6 +9,7 @@ var Literal = types.Literal;
 var FStruct = types.FStruct;
 var World = types.World;
 var Variable = types.Variable;
+var Lattice = types.Lattice;
 var eq = types.eq;
 var compare = types.compare;
 
@@ -93,3 +94,24 @@ var topkozu = FStruct({top: kozu});
 var toppepa = FStruct({top: pepa});
 assert(eq(U(toppepa, rec12), Nothing));
 assert(!eq(U(topkozu, rec12), Nothing));
+
+/* Lattices */
+
+var l = Lattice(60);
+Lattice.add(l, 'a');
+Lattice.add(l, 'b');
+Lattice.add(l, 'd');
+Lattice.add(l, 'c', ['a', 'b']);
+Lattice.add(l, 'e', ['d', 'b']);
+Lattice.add(l, 'f', ['a', 'c']);
+var els = {};
+['a','b','c','d','e','f'].forEach(function(el) {
+    els[el] = Lattice.element(l, el);
+});
+assert(eq(U(els.c, els.e), els.b));
+assert(eq(U(els.f, els.e), els.b));
+assert(eq(U(els.a, els.e), Nothing));
+assert(eq(U(els.f, els.c), els.c));
+assert(eq(U(els.e, els.d), els.d));
+assert(eq(U(els.f, els.d), Nothing));
+assert(eq(U(els.a, els.d), Nothing));

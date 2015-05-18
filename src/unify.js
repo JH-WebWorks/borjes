@@ -8,6 +8,7 @@ var Literal = types.Literal;
 var FStruct = types.FStruct;
 var World = types.World;
 var Variable = types.Variable;
+var Lattice = types.Lattice;
 var eq = types.eq;
 var copy = types.copy;
 
@@ -31,6 +32,9 @@ function unify (x, y, newworld, leftmap, rightmap) {
     }
     if (eq(y, Anything)) {
         return copy(x, leftmap);
+    }
+    if (x.borjes === 'latticeel' && y.borjes === 'latticeel') {
+        return Lattice.meet(x, y);
     }
     if ((x.borjes_bound !== undefined || y.borjes_bound !== undefined) && (newworld === undefined)) {
         return unifyBound(x, y, leftmap, rightmap);
