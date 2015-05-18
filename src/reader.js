@@ -12,7 +12,7 @@ var Variable = types.Variable;
 var World = types.World;
 var Predicate = types.Predicate;
 
-var YamlPredicate = new yaml.Type('!js/function', {
+var JSFuncYML = new yaml.Type('!js/function', {
     kind: 'scalar',
     resolve: function (data) { return data !== null; },
     construct: function (data) {
@@ -20,9 +20,22 @@ var YamlPredicate = new yaml.Type('!js/function', {
     }
 });
 
+/* Modified version of lisp2js where you can ask the compiler not to eval
+ * the result. */
+var lisp = require('../lib/lisp2js');
+var LispFuncYML = new yaml.Type('!lisp', {
+    kind: 'scalar',
+    resolve: function (data) { return data !== null; },
+    construct: function (data) {
+        var f;
+        eval('f = '+lisp.compile(data));
+        return f;
+    }
+});
+
 var BORJES_SCHEMA = new yaml.Schema({
     include: [ yaml.DEFAULT_SAFE_SCHEMA ],
-    explicit: [ YamlPredicate ]
+    explicit: [ JSFuncYML, LispFuncYML ]
 });
 
 exports.CFG = function ( description ) {

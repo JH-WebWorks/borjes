@@ -1,14 +1,9 @@
 %YAML 1.2
 --- # Simple English Grammar
 Predicates:
-    Prod: !js/function |
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        if (x===undefined) { x = 1; }
-        if (y===undefined) { y = 1; }
-        if (z===undefined) { z = 1; }
-        return x * y * z;
+    Prod: !lisp |
+        (fn (:x 1 :y 1 :z 1)
+            (* x y z))
     Concat: !js/function >
         return Array.prototype.slice.call(arguments).join('');
 
