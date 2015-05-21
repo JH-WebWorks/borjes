@@ -20,6 +20,79 @@ function Literal ( string ) {
 };
 primitive['literal'] = true;
 
+// LATTICE
+
+var lattice_names = 1;
+var lattices = {};
+function Lattice (max_elements, name) {
+    if (name === undefined) {
+        name = lattice_names++;
+    }
+    var r = {
+        borjes: 'lattice',
+        n: 0,
+        name: name,
+        nels: Math.floor((max_elements-1)/32)+1,
+        elem: {}, // from bitarray to string
+        bits: {}, // from string to bitarray
+    };
+    lattices[name] = r;
+    return r;
+}
+primitive['lattice'] = true;
+
+function to_bstr ( l, uarray ) {
+    var bstr = '';
+    for (var j=0; j<l.nels; j++) {
+        bstr += uarray[j]+'-';
+    }
+    return bstr;
+}
+
+Lattice.add = function (l, elem, subelems) {
+    var bits = new Uint32Array(l.nels);
+    var shift = l.n, w = 0;
+    for (; shift>=32; shift-=32) { w++; }
+    bits[w] |= 1 << shift;
+    if ( subelems ) {
+        for (var i = 0; i<subelems.length; i++) {
+            var toor = l.bits[subelems[i]];
+            for (var j=0; j<l.nels; j++) {
+                bits[j] |= toor[j];
+            }
+        }
+    }
+    l.n++;
+    l.bits[elem] = bits;
+    l.elem[to_bstr(l, bits)] = elem;
+}
+
+Lattice.element = function ( lattice, elem ) {
+    if (typeof lattice !== 'object') {
+        lattice = lattices[lattice];
+    }
+    return {
+        borjes: 'latticeel',
+        l: lattice.name,
+        e: elem
+    };
+}
+primitive['latticeel'] = true;
+
+Lattice.meet = function (x, y) {
+    if (x.l !== y.l) { return Nothing; }
+    var l = lattices[x.l];
+    var bits = new Uint32Array(l.nels);
+    var xbits = l.bits[x.e];
+    var ybits = l.bits[y.e];
+    for (var i = 0; i<l.nels; i++) {
+        bits[i] = xbits[i] & ybits[i];
+    }
+    var meet = l.elem[to_bstr(l, bits)];
+    if (meet === undefined) { return Nothing; }
+    return Lattice.element(l, meet);
+}
+
 // FEATURE STRUCTURE
 
 function FStruct ( object, features ) {
@@ -78,6 +151,27 @@ function copy_fs ( x, map ) {
         var f = r.f[i];
         r.v[f] = copy(x.v[f], map);
     }
+    return r;
+}
+
+// TYPED FEATURE STRUCTURE
+
+function TFS ( type, object, features ) {
+    var fs = FStruct(object, features);
+    fs.borjes = 'tfstruct';
+    fs.type = type;
+    return fs;
+}
+
+function compare_tfs ( x, y, wx, wy ) {
+    if (!eq(x.type, y.type)) { return false; }
+    return compare_fs(x, y, wx, wy);
+}
+
+function copy_tfs ( x, map ) {
+    var r = copy_fs(x, map);
+    r.borjes = 'tfstruct';
+    r.type = copy(x.type, map);
     return r;
 }
 
@@ -179,79 +273,6 @@ Predicate.copy = function ( pred, map ) {
         }
     }
     return predicates[pred.name].apply(null, args);
-}
-
-// LATTICE
-
-var lattice_names = 1;
-var lattices = {};
-function Lattice (max_elements, name) {
-    if (name === undefined) {
-        name = lattice_names++;
-    }
-    var r = {
-        borjes: 'lattice',
-        n: 0,
-        name: name,
-        nels: Math.floor((max_elements-1)/32)+1,
-        elem: {}, // from bitarray to string
-        bits: {}, // from string to bitarray
-    };
-    lattices[name] = r;
-    return r;
-}
-primitive['lattice'] = true;
-
-function to_bstr ( l, uarray ) {
-    var bstr = '';
-    for (var j=0; j<l.nels; j++) {
-        bstr += uarray[j]+'-';
-    }
-    return bstr;
-}
-
-Lattice.add = function (l, elem, subelems) {
-    var bits = new Uint32Array(l.nels);
-    var shift = l.n, w = 0;
-    for (; shift>=32; shift-=32) { w++; }
-    bits[w] |= 1 << shift;
-    if ( subelems ) {
-        for (var i = 0; i<subelems.length; i++) {
-            var toor = l.bits[subelems[i]];
-            for (var j=0; j<l.nels; j++) {
-                bits[j] |= toor[j];
-            }
-        }
-    }
-    l.n++;
-    l.bits[elem] = bits;
-    l.elem[to_bstr(l, bits)] = elem;
-}
-
-Lattice.element = function ( lattice, elem ) {
-    if (typeof lattice !== 'object') {
-        lattice = lattices[lattice];
-    }
-    return {
-        borjes: 'latticeel',
-        l: lattice.name,
-        e: elem
-    };
-}
-primitive['latticeel'] = true;
-
-Lattice.meet = function (x, y) {
-    if (x.l !== y.l) { return Nothing; }
-    var l = lattices[x.l];
-    var bits = new Uint32Array(l.nels);
-    var xbits = l.bits[x.e];
-    var ybits = l.bits[y.e];
-    for (var i = 0; i<l.nels; i++) {
-        bits[i] = xbits[i] & ybits[i];
-    }
-    var meet = l.elem[to_bstr(l, bits)];
-    if (meet === undefined) { return Nothing; }
-    return Lattice.element(l, meet);
 }
 
 // FUNCTIONS

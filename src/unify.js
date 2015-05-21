@@ -42,6 +42,12 @@ function unify (x, y, newworld, leftmap, rightmap) {
     if (x.borjes === 'fstruct' && y.borjes === 'fstruct') {
         return unifyFS(x, y, newworld, leftmap, rightmap);
     }
+    if (x.borjes === 'tfstruct') {
+        return unifyTFS(x, y, newworld, leftmap, rightmap);
+    }
+    if (y.borjes === 'tfstruct') {
+        return unifyTFS(y, x, newworld, rightmap, leftmap);
+    }
     return Nothing;
 }
 
@@ -64,6 +70,20 @@ function unifyFS (x, y, nw, lm, rm) {
         }
     }
     return r;
+}
+
+/* x is tfs */
+function unifyTFS (x, y, nw, lm, rm) {
+    if (y.borjes === 'tfstruct' || y.borjes === 'fstruct') {
+        var type = unify(x.type, y.type, nw, lm, rm);
+        if (type === Nothing) { return Nothing; }
+        var mgu = unifyFS(x, y, nw, lm, rm);
+        if (mgu === Nothing) { return Nothing; }
+        mgu.borjes = 'tfstruct';
+        mgu.type = type;
+        return mgu;
+    }
+    return Nothing;
 }
 
 function unifyBound (x, y, leftmap, rightmap) {
