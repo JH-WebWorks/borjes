@@ -2,7 +2,7 @@
   "name": "borjes",
   "version": "0.0.3",
   "license": "AGPL-3.0",
-  "main": "main",
+  "main": "src/index.js",
   "private": true,
   "devDependencies": {
     "js-yaml": "^3.3.0"
