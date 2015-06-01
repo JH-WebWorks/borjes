@@ -56,7 +56,8 @@ Lattice.add = function (l, elem, subelems) {
     bits[w] |= 1 << shift;
     if ( subelems ) {
         for (var i = 0; i<subelems.length; i++) {
-            var toor = l.bits[subelems[i]];
+            var el = subelems[i];
+            var toor = l.bits[el.e];
             for (var j=0; j<l.nels; j++) {
                 bits[j] |= toor[j];
             }
@@ -65,6 +66,11 @@ Lattice.add = function (l, elem, subelems) {
     l.n++;
     l.bits[elem] = bits;
     l.elem[to_bstr(l, bits)] = elem;
+    return {
+        borjes: 'latticeel',
+        l: l.name,
+        e: elem
+    }
 }
 
 Lattice.element = function ( lattice, elem ) {

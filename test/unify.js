@@ -98,16 +98,15 @@ assert(!eq(U(topkozu, rec12), Nothing));
 /* Lattices */
 
 var l = Lattice(60);
-Lattice.add(l, 'a');
-Lattice.add(l, 'b');
-Lattice.add(l, 'd');
-Lattice.add(l, 'c', ['a', 'b']);
-Lattice.add(l, 'e', ['d', 'b']);
-Lattice.add(l, 'f', ['a', 'c']);
-var els = {};
-['a','b','c','d','e','f'].forEach(function(el) {
-    els[el] = Lattice.element(l, el);
-});
+var els = {
+    a: Lattice.add(l, 'a'),
+    b: Lattice.add(l, 'b'),
+    d: Lattice.add(l, 'd'),
+};
+els.c = Lattice.add(l, 'c', [els.a, els.b]);
+els.e = Lattice.add(l, 'e', [els.d, els.b]);
+els.f = Lattice.add(l, 'f', [els.a, els.c]);
+
 assert(eq(U(els.c, els.e), els.b));
 assert(eq(U(els.f, els.e), els.b));
 assert(eq(U(els.a, els.e), Nothing));
