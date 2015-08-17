@@ -1,17 +1,26 @@
 "use strict";
 
-/*
- * parses expressions of the form
- *     word(exp,exp,...)
- * and returns them as arrays
- *     [ word, exp, exp, ... ]
- * of course subexpressions are also arrays
- * understands (a bit) double quotation marks
+/**
+ * This module provides a parser for parenthesis expressions.
+ *
+ * @exports parse
+ */
+
+/**
+ * Gets the next token in the input string (for a parenthesis expression)
+ * @private
+ * @param {String} string - the string to parse
+ * @param {Object} [state] - after the first token is parsed, state is filled
+ * with an object, which should be passed to next invocations of strtok to
+ * continue parsing the same string.
+ * @return {Object} an object with properties 't' for the token found, and 'w'
+ * if a word was found (the word is put there).
  */
 function strtok ( string, state ) {
     if (state.r === undefined) {
         state.r = new RegExp('[^,()"]+|\\)|\\(|,|("[^"]+")', 'g');
     }
+    // state.pb: fill this to put back a token for the parser
     if (state.pb !== undefined) {
         var pb = state.pb;
         delete state.pb;
@@ -35,6 +44,19 @@ function error ( string, tok ) {
     throw Error('Malformed string');
 }
 
+/**
+ * Parses expressions of the form
+ *     word(exp,exp,...)
+ * and returns them as arrays
+ *     [ word, exp, exp, ... ]
+ * of course subexpressions are also arrays.
+ * Understands (a bit) double quotation marks.
+ * @param {String} string - the string to parse
+ * @param {Object} [state] - should be undefined, it is used by the function for
+ * recursive parsing.
+ * @throws {Error} if the string is not a par-exp.
+ * @return {Array} an array equivalent of the par-exp.
+ */
 function parse ( string, state ) {
     if (state === undefined) { state = {}; }
     var q = 0;

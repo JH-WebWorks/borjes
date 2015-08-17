@@ -1,10 +1,19 @@
 "use strict";
 
+/**
+ * Helper functions for visualizing borjes objects.
+ */
+
 var types = require('./types');
 
 var FStruct = types.FStruct;
 var World = types.World;
 
+/**
+ * Formats a primitive (non-recursive) object as a string
+ * @param {Borjes} object
+ * @return {String}
+ */
 function primitive (object) {
     if (typeof object !== 'object') {
         return object+'';
@@ -16,6 +25,13 @@ function primitive (object) {
 }
 exports.primitive = primitive;
 
+/**
+ * Formats a borjes object as an flist, that is a name plus a list of features
+ * in parenthesis.
+ * @param {Borjes} object - the object to format
+ * @param {String} main - the feature to use as the name
+ * @return {String}
+ */
 function flist (object, main) {
     if (typeof object !== 'object' || object.borjes !== 'fstruct') {
         return primitive(object);

@@ -1,39 +1,114 @@
 "use strict";
 
+/**
+ * This module provides the different Borjes types and related functions.
+ */
+
+/**
+ * Set of strings (type labels), the types which are "static" and thus can
+ * safely be passed around by reference.
+ */
 var primitive = {};
 
+/**
+ * The nothing object unifies with nothing, represents failure of unification or
+ * absence of results.
+ *
+ * @typedef Nothing
+ * @property {String} borjes - 'nothing'
+ * @PRIMITIVE
+ */
 var Nothing = {
     borjes: 'nothing'
 };
 primitive['nothing'] = true;
 
+/**
+ * The anything object unifies with anything.
+ *
+ * @typedef Anything
+ * @property {String} borjes - 'anything'
+ * @PRIMITIVE
+ * @deprecated
+ */
 var Anything = {
     borjes: 'anything'
 };
 primitive['anything'] = true;
 
+/**
+ * Creates a new literal object.
+ *
+ * @param {String} string - the constant string.
+ * @return {Literal} a literal that represents that string.
+ */
 function Literal ( string ) {
+    /**
+     * A literal object represents a constant string.
+     *
+     * @typedef Literal
+     * @PRIMITIVE
+     */
     return {
+        /** @property {String} borjes - 'literal' */
         borjes: 'literal',
+        /** @property {String} s - the string */
         s: string
     };
 };
 primitive['literal'] = true;
 
-// LATTICE
+/**
+ * LATTICE
+ * =======
+ * @TODO try to remove static collection of lattices.
+ */
 
+/**
+ * An auto-increment counter for assigning names to lattices.
+ */
 var lattice_names = 1;
+
+/**
+ * A static collection of all lattices.
+ */
 var lattices = {};
+
+/**
+ * Creates a new lattice.
+ *
+ * @param {Number} max_elements - the maximum number of elements the lattice.
+ * @param {String} [name] - an optional name to identify the lattice.
+ * @return {Lattice} a new, empty lattice.
+ */
 function Lattice (max_elements, name) {
     if (name === undefined) {
         name = lattice_names++;
     }
+    /**
+     * A lattice is a set of names (usually used for type hierarchies) which are
+     * partially ordered.
+     *
+     * It is implemented with a bit array. Each element is assigned a bit array
+     * which includes a bit for itself, and a bit for each other element
+     * dominated/included.
+     * @typedef Lattice
+     * @PRIMITIVE
+     */
     var r = {
+        /** @property {String} borjes - 'lattice' */
         borjes: 'lattice',
+        /** @property {Number} n - the number of elements in the lattice */
         n: 0,
+        /** @property {String} name - the lattice name */
         name: name,
+        /** @property {Number} nels - the number of bytes in the bit array */
         nels: Math.floor((max_elements-1)/32)+1,
+        /** @property {Object} elem - a mapping from bitarrays to element names
+         * (strings) */
         elem: {}, // from bitarray to string
+        /** @property {Object} bits - a mapping from element names (strings) to
+         * bitarrays */
         bits: {}, // from string to bitarray
     };
     lattices[name] = r;
@@ -41,6 +116,12 @@ function Lattice (max_elements, name) {
 }
 primitive['lattice'] = true;
 
+/**
+ * Converts a bitarray into a string for indexing in a JSO.
+ * @param {Lattice} l - the lattice (for the number of bytes).
+ * @param {Byte[]} uarray
+ * @private
+ */
 function to_bstr ( l, uarray ) {
     var bstr = '';
     for (var j=0; j<l.nels; j++) {
@@ -49,6 +130,16 @@ function to_bstr ( l, uarray ) {
     return bstr;
 }
 
+/**
+ * Creates a new element in the lattice.
+ *
+ * @param {Lattice} l - the lattice to which to add the element.
+ * @param {String} elem - the name of the new element.
+ * @param {Lattice.element[]} subelems - the lattice elements that the new one
+ * includes/dominates (is greater to in the lattice order). Since an order has
+ * the transitive property, only the direct sub-elements have to be included.
+ * @return {Lattice.element} the new element.
+ */
 Lattice.add = function (l, elem, subelems) {
     var bits = new Uint32Array(l.nels);
     var shift = l.n, w = 0;
@@ -73,18 +164,40 @@ Lattice.add = function (l, elem, subelems) {
     }
 }
 
+/**
+ * Gets a lattice element by name.
+ *
+ * @param {Lattice} lattice - the lattice to which the element belongs.
+ * @param {String} elem - the name of the element to retrieve.
+ * @return {Lattice.element}
+ */
 Lattice.element = function ( lattice, elem ) {
     if (typeof lattice !== 'object') {
         lattice = lattices[lattice];
     }
+    /**
+     * @typedef Lattice.element
+     * @PRIMITIVE
+     */
     return {
+        /** @property {String} borjes - 'latticeel' */
         borjes: 'latticeel',
+        /** @property {String} l - the lattice name */
         l: lattice.name,
+        /** @property {String} e - the element name */
         e: elem
     };
 }
 primitive['latticeel'] = true;
 
+/**
+ * Finds the greatest lower bound common to the two elements.
+ *
+ * @param {Lattice.element} x
+ * @param {Lattice.element} y
+ * @return {Lattice.element|Nothing} the greatest lower bound, or Nothing if it
+ * doesn't exist.
+ */
 Lattice.meet = function (x, y) {
     if (x.l !== y.l) { return Nothing; }
     var l = lattices[x.l];
@@ -99,8 +212,20 @@ Lattice.meet = function (x, y) {
     return Lattice.element(l, meet);
 }
 
-// FEATURE STRUCTURE
+/**
+ * FEATURE STRUCTURE
+ * =================
+ */
 
+/**
+ * Creates a new feature structure.
+ *
+ * @param {Object} [object] - a mapping from names to values to turn into a
+ * fstruct. If not provided, the fstruct is constructed with no features.
+ * @param {Object} [features] - which attributes from object to use for the
+ * fstruct. By default all attributes are used.
+ * @return {FStruct} a new fstruct with the provided features if any.
+ */
 function FStruct ( object, features ) {
     if (object === undefined) {
         features = [];
@@ -108,9 +233,18 @@ function FStruct ( object, features ) {
     if (features === undefined) {
         features = Object.keys(object);
     }
+    /**
+     * A feature structure is a mapping from feature names (strings) to feature
+     * values (Borjes objects).
+     *
+     * @typedef FStruct
+     */
     var r = {
+        /** @property {String} borjes - 'fstruct' */
         borjes: 'fstruct',
+        /** @property {String[]} f - the feature names for this fstruct */
         f: features,
+        /** @property {Object} v - the mapping from feature names to their values */
         v: {}
     };
     for (var i in r.f) {
@@ -120,6 +254,13 @@ function FStruct ( object, features ) {
     return r;
 }
 
+/**
+ * Sets a feature in a feature structure to a value.
+ *
+ * @param {FStruct} fs - the fstruct.
+ * @param {String} feat - the name of the feature.
+ * @param {Borjes} val - the value of the feature.
+ */
 FStruct.set = function ( fs, feat, val ) {
     var i;
     for (i=0; i<fs.f.length; i++) {
@@ -133,10 +274,27 @@ FStruct.set = function ( fs, feat, val ) {
     fs.v[feat] = val;
 }
 
+/**
+ * Gets the value of a feature in a fstruct.
+ *
+ * @param {FStruct} fs - the fstruct.
+ * @param {String} feat - the name of the feature.
+ * @return {Borjes} the feature value.
+ */
 FStruct.get = function ( fs, feat ) {
     return fs.v[feat];
 }
 
+/**
+ * Checks whether two fstructs are comparable (the features which are set in
+ * both are comparable)
+ *
+ * @param {FStruct} x
+ * @param {FStruct} y
+ * @param {World} [wx] - the world in which x lives (if there is one)
+ * @param {World} [wy] - the world in which y lives (if there is one)
+ * @return {boolean}
+ */
 function compare_fs ( x, y, wx, wy ) {
     for (var i in x.f) {
         var f = x.f[i];
@@ -147,6 +305,14 @@ function compare_fs ( x, y, wx, wy ) {
     return true;
 };
 
+/**
+ * Copies a fstruct (creates a new one with the same features, and copies of the
+ * values for each feature).
+ *
+ * @param {FStruct} x
+ * @param {WorldMap} [map] - a mapping from old world names to new world names.
+ * @return {FStruct}
+ */
 function copy_fs ( x, map ) {
     var r = {
         borjes: 'fstruct',
@@ -160,20 +326,53 @@ function copy_fs ( x, map ) {
     return r;
 }
 
-// TYPED FEATURE STRUCTURE
+/**
+ * TYPED FEATURE STRUCTURE
+ * =======================
+ */
 
+/**
+ * Creates a new typed fstruct.
+ *
+ * @param {Borjes} type - the type of the tfs.
+ * @param {Object} object - see the constructor for FStruct.
+ * @param {Object} features - see the constructor for FStruct.
+ * @return {TFS} a new tfs.
+ */
 function TFS ( type, object, features ) {
     var fs = FStruct(object, features);
+    /**
+     * @typedef TFS
+     * @extends {FStruct}
+     * @property {String} borjes - 'tfstruct'
+     * @property {Borjes} type - the type of the fstruct.
+     */
     fs.borjes = 'tfstruct';
     fs.type = type;
     return fs;
 }
 
+/**
+ * Compares two tfs.
+ *
+ * @param {TFS} x
+ * @param {TFS} y
+ * @param {World} wx - the world of x
+ * @param {World} wy - the world of y
+ * @return {boolean} true if the types are equal and the fstructs are comparable.
+ */
 function compare_tfs ( x, y, wx, wy ) {
     if (!eq(x.type, y.type)) { return false; }
     return compare_fs(x, y, wx, wy);
 }
 
+/**
+ * Copies a tfs.
+ *
+ * @param {TFS} x
+ * @param {WorldMap} [map] - a mapping from old world names to new world names.
+ * @return {TFS}
+ */
 function copy_tfs ( x, map ) {
     var r = copy_fs(x, map);
     r.borjes = 'tfstruct';
@@ -181,19 +380,51 @@ function copy_tfs ( x, map ) {
     return r;
 }
 
-// WORLD
+/**
+ * WORLD
+ * =====
+ */
 
+/**
+ * Creates a new world.
+ *
+ * @return {World}
+ */
 function World () {
+    /**
+     * A world is an object in which to store other objects. It can be
+     * attached to a Borjes object (especially a recursive one) so that values
+     * in that object can be variables. Bound variables always refer to a value
+     * in a world.
+     *
+     * @typedef World
+     */
     return {
+        /** @property {String} borjes - 'world' */
         borjes: 'world',
+        /** @property {Borjes[]} values - an array of values */
         values: []
     };
 }
 
+/**
+ * Gets the value for a given name in a world.
+ *
+ * @param {World} world
+ * @param {Name} index - the name of the value.
+ */
 World.get = function ( world, index ) {
     return world.values[index];
 };
 
+/**
+ * Gets the final value for a variable, after all renamings have been resolved.
+ *
+ * @param {World} world
+ * @param {Variable|Borjes} x - the variable to resolve. If it's not a variable,
+ * it's returned itself.
+ * @return {Borjes} the resolved value. Can't be a variable.
+ */
 World.resolve = function ( world, x ) {
     while (typeof x === 'object' && x.borjes === 'variable') {
         x = world.values[x.index];
@@ -201,19 +432,47 @@ World.resolve = function ( world, x ) {
     return x;
 };
 
+/**
+ * Attach a world to an object. This is necessary for unification to know
+ * where the variables in the object live.
+ *
+ * @param {World} world - the world to attach.
+ * @param {Borjes} x - the object to which to attach the world.
+ */
 World.bind = function ( world, x ) {
     x.borjes_bound = world;
 };
 
+/**
+ * Puts an object in a world.
+ *
+ * @param {World} world
+ * @param {Borjes} x - the object to put.
+ * @return {Name} the name for the object in the world.
+ */
 World.put = function ( world, x ) {
     world.values.push(x);
     return world.values.length-1;
 };
 
+/**
+ * Changes the value of an object in the world.
+ *
+ * @param {World} world - the world to which the object belongs.
+ * @param {Name} index - the name of the object.
+ * @param {Borjes} x - the new value for the name.
+ */
 World.set = function ( world, index, x ) {
     world.values[index] = x;
 };
 
+/**
+ * Copies a world, possibly changing the names of the values.
+ *
+ * @param {World} x - the world to copy.
+ * @param {WorldMap} [map] - a mapping from old names to new ones.
+ * @return {World} a copy of the world.
+ */
 function copy_world ( x, map ) {
     return {
         borjes: 'world',
@@ -223,15 +482,43 @@ function copy_world ( x, map ) {
     };
 }
 
-// VARIABLE
+/**
+ * VARIABLE
+ * ========
+ */
 
+/**
+ * Creates a new variable.
+ *
+ * @param {World} world - the world the variable lives in.
+ * @param {Borjes} [value] - a value to which to bind the variable.
+ * @return {Variable} a new variable, free if no value was provided, otherwise
+ * bound to that value.
+ * @TODO free variables (value == undefined)
+ */
 function Variable ( world, value ) {
+    /**
+     * A variable is an indirect name for another object. The advantage of
+     * variables is that in a recursive object (e.g. an fstruct) many values can
+     * point to the same object, thus sharing structure.
+     *
+     * @typedef Variable
+     */
     return {
+        /** @property {String} borjes - 'variable' */
         borjes: 'variable',
+        /** @property {Name} index - if defined, the name of the bound value. */
         index: World.put(world, value)
     };
 }
 
+/**
+ * Copies a variable, possibly changing the name of the bound value.
+ *
+ * @param {Variable} x - the variable to copy.
+ * @param {WorldMap} [map] - a mapping from old world names to new ones.
+ * @return {Variable}
+ */
 Variable.copy = function ( x, map ) {
     var i;
     if (map) {
@@ -251,7 +538,11 @@ Variable.copy = function ( x, map ) {
     };
 }
 
-// PREDICATE
+/**
+ * PREDICATE
+ * =========
+ * @TODO revise
+ */
 
 var predicates = {};
 
@@ -281,8 +572,19 @@ Predicate.copy = function ( pred, map ) {
     return predicates[pred.name].apply(null, args);
 }
 
-// FUNCTIONS
+/**
+ * UTILITY FUNCTIONS
+ * =================
+ */
 
+/**
+ * Compares two borjes objects for strict equality (only useful with primitive
+ * types).
+ *
+ * @param {Borjes} x
+ * @param {Borjes} y
+ * @return {boolean} whether the objects are equal.
+ */
 function eq ( x, y ) {
     if (x === y) {
         return true;
@@ -302,6 +604,13 @@ function eq ( x, y ) {
     return false;
 }
 
+/**
+ * Copies a Borjes object.
+ *
+ * @param {Borjes} x - the object to copy.
+ * @param {WorldMap} [map] - a mapping from old world names to new ones.
+ * @return {Borjes}
+ */
 function copy ( x, map ) {
     if (typeof x !== 'object' || primitive[x.borjes]) {
         return x;
@@ -323,6 +632,15 @@ function copy ( x, map ) {
     return c;
 }
 
+/**
+ * Compares two Borjes objects.
+ *
+ * @param {Borjes} x
+ * @param {Borjes} y
+ * @param {World} [wx] - the world where x lives.
+ * @param {World} [wy] - the world where y lives.
+ * @return {boolean} true if the objects are equivalent.
+ */
 function compare ( x, y, worldx, worldy ) {
     if (x.borjes_bound) { worldx = x.borjes_bound; }
     if (y.borjes_bound) { worldy = y.borjes_bound; }
