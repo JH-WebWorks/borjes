@@ -1,9 +1,5 @@
 "use strict";
 
-/**
- * Helper functions for visualizing borjes objects.
- */
-
 var types = require('./types');
 
 var FStruct = types.FStruct;

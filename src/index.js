@@ -1,9 +1,5 @@
 "use strict";
 
-/**
- * Index for package managers, exports the different objects.
- */
-
 exports.formatter = require('./formatter');
 exports.lexicon = require('./lexicon');
 exports.parenthesis = require('./parenthesis');

@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * This module provides the Rule object.
- *
- * @exports Rule
- */
-
 var types = require('./types');
 var unify = require('./unify');
 
@@ -35,21 +29,23 @@ var copy = types.copy;
  * @return {Rule} a new rule.
  */
 function Rule ( mother, daughters, name, events ) {
+    /**
+     * @typedef Rule
+     * @property {String} borjes - 'rule'
+     * @property {Borjes[]} daughters
+     * @property {Borjes} mother
+     * @property {String} name
+     * @property {Object} on - Callbacks for the rule
+     * @property {function} on.fail
+     * @property {function} on.success
+     * @property {Number} arity - number of daughters
+     */
     return {
-        /** The tag is *rule* */
         borjes: 'rule',
-        /** @type {Borjes[]} */
         d: daughters,
-        /** @type {Borjes} */
         m: mother,
-        /** @type {String} */
         name: name || "Rule",
-        /**
-         * Callbacks for the rule, has *fail* and *success*
-         * @type {Object}
-         */
         on: events || {},
-        /** number of daughters */
         arity: daughters.length
     };
 }

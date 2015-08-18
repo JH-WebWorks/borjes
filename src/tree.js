@@ -1,12 +1,6 @@
 "use strict";
 
 /**
- * This module provides the Tree object.
- *
- * @exports Tree
- */
-
-/**
  * Creates a new tree, with a parent node and its direct children.
  *
  * @param {Any} node - the parent/root node of the tree.
@@ -19,13 +13,17 @@ function Tree (node, children) {
     } else if ( !children.length ) {
         children = [ children ];
     }
-    /** @typedef Tree */
+    /**
+     * A recursive tree data structure.
+     *
+     * @typedef Tree
+     * @property {String} borjes - 'tree'
+     * @property {Any} node - the (unboxed) root of the tree.
+     * @property {Tree[]} children - the subtrees children of the root.
+     */
     return {
-        /** @property {String} borjes - 'tree' */
         borjes: 'tree',
-        /** @property {Any} node - the (unboxed) root of the tree. */
         node: node,
-        /** @property {Tree[]} children - the subtrees children of the root. */
         children: children
     };
 }

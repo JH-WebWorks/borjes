@@ -1,10 +1,6 @@
 "use strict";
 
 /**
- * This module provides the different Borjes types and related functions.
- */
-
-/**
  * Set of strings (type labels), the types which are "static" and thus can
  * safely be passed around by reference.
  */
@@ -41,28 +37,27 @@ primitive['anything'] = true;
  *
  * @param {String} string - the constant string.
  * @return {Literal} a literal that represents that string.
+ * @variation constructor
  */
 function Literal ( string ) {
     /**
      * A literal object represents a constant string.
      *
      * @typedef Literal
+     * @property {String} borjes - 'literal'
+     * @property {String} s - the string
      * @PRIMITIVE
      */
     return {
-        /** @property {String} borjes - 'literal' */
         borjes: 'literal',
-        /** @property {String} s - the string */
         s: string
     };
 };
 primitive['literal'] = true;
 
-/**
- * LATTICE
- * =======
- * @TODO try to remove static collection of lattices.
- */
+// LATTICE
+// =======
+// TODO try to remove static collection of lattices.
 
 /**
  * An auto-increment counter for assigning names to lattices.
@@ -80,6 +75,7 @@ var lattices = {};
  * @param {Number} max_elements - the maximum number of elements the lattice.
  * @param {String} [name] - an optional name to identify the lattice.
  * @return {Lattice} a new, empty lattice.
+ * @variation constructor
  */
 function Lattice (max_elements, name) {
     if (name === undefined) {
@@ -93,22 +89,22 @@ function Lattice (max_elements, name) {
      * which includes a bit for itself, and a bit for each other element
      * dominated/included.
      * @typedef Lattice
+     * @property {String} borjes - 'lattice'
+     * @property {Number} n - the number of elements in the lattice
+     * @property {String} name - the lattice name
+     * @property {Number} nels - the number of bytes in the bit array
+     * @property {Object} elem - a mapping from bitarrays to element names
+     * (strings)
+     * @property {Object} bits - a mapping from element names (strings) to
+     * bitarrays
      * @PRIMITIVE
      */
     var r = {
-        /** @property {String} borjes - 'lattice' */
         borjes: 'lattice',
-        /** @property {Number} n - the number of elements in the lattice */
         n: 0,
-        /** @property {String} name - the lattice name */
         name: name,
-        /** @property {Number} nels - the number of bytes in the bit array */
         nels: Math.floor((max_elements-1)/32)+1,
-        /** @property {Object} elem - a mapping from bitarrays to element names
-         * (strings) */
         elem: {}, // from bitarray to string
-        /** @property {Object} bits - a mapping from element names (strings) to
-         * bitarrays */
         bits: {}, // from string to bitarray
     };
     lattices[name] = r;
@@ -170,6 +166,7 @@ Lattice.add = function (l, elem, subelems) {
  * @param {Lattice} lattice - the lattice to which the element belongs.
  * @param {String} elem - the name of the element to retrieve.
  * @return {Lattice.element}
+ * @variation constructor
  */
 Lattice.element = function ( lattice, elem ) {
     if (typeof lattice !== 'object') {
@@ -177,14 +174,14 @@ Lattice.element = function ( lattice, elem ) {
     }
     /**
      * @typedef Lattice.element
+     * @property {String} borjes - 'latticeel'
+     * @property {String} l - the lattice name
+     * @property {String} e - the element name
      * @PRIMITIVE
      */
     return {
-        /** @property {String} borjes - 'latticeel' */
         borjes: 'latticeel',
-        /** @property {String} l - the lattice name */
         l: lattice.name,
-        /** @property {String} e - the element name */
         e: elem
     };
 }
@@ -212,10 +209,8 @@ Lattice.meet = function (x, y) {
     return Lattice.element(l, meet);
 }
 
-/**
- * FEATURE STRUCTURE
- * =================
- */
+// FEATURE STRUCTURE
+// =================
 
 /**
  * Creates a new feature structure.
@@ -225,6 +220,7 @@ Lattice.meet = function (x, y) {
  * @param {Object} [features] - which attributes from object to use for the
  * fstruct. By default all attributes are used.
  * @return {FStruct} a new fstruct with the provided features if any.
+ * @variation constructor
  */
 function FStruct ( object, features ) {
     if (object === undefined) {
@@ -238,13 +234,13 @@ function FStruct ( object, features ) {
      * values (Borjes objects).
      *
      * @typedef FStruct
+     * @property {String} borjes - 'fstruct'
+     * @property {String[]} f - the feature names for this fstruct
+     * @property {Object} v - the mapping from feature names to their values
      */
     var r = {
-        /** @property {String} borjes - 'fstruct' */
         borjes: 'fstruct',
-        /** @property {String[]} f - the feature names for this fstruct */
         f: features,
-        /** @property {Object} v - the mapping from feature names to their values */
         v: {}
     };
     for (var i in r.f) {
@@ -326,10 +322,8 @@ function copy_fs ( x, map ) {
     return r;
 }
 
-/**
- * TYPED FEATURE STRUCTURE
- * =======================
- */
+// TYPED FEATURE STRUCTURE
+// =======================
 
 /**
  * Creates a new typed fstruct.
@@ -338,6 +332,7 @@ function copy_fs ( x, map ) {
  * @param {Object} object - see the constructor for FStruct.
  * @param {Object} features - see the constructor for FStruct.
  * @return {TFS} a new tfs.
+ * @variation constructor
  */
 function TFS ( type, object, features ) {
     var fs = FStruct(object, features);
@@ -380,15 +375,14 @@ function copy_tfs ( x, map ) {
     return r;
 }
 
-/**
- * WORLD
- * =====
- */
+// WORLD
+// =====
 
 /**
  * Creates a new world.
  *
  * @return {World}
+ * @variation constructor
  */
 function World () {
     /**
@@ -398,11 +392,11 @@ function World () {
      * in a world.
      *
      * @typedef World
+     * @property {String} borjes - 'world'
+     * @property {Borjes[]} values - an array of values
      */
     return {
-        /** @property {String} borjes - 'world' */
         borjes: 'world',
-        /** @property {Borjes[]} values - an array of values */
         values: []
     };
 }
@@ -482,10 +476,8 @@ function copy_world ( x, map ) {
     };
 }
 
-/**
- * VARIABLE
- * ========
- */
+// VARIABLE
+// ========
 
 /**
  * Creates a new variable.
@@ -495,6 +487,7 @@ function copy_world ( x, map ) {
  * @return {Variable} a new variable, free if no value was provided, otherwise
  * bound to that value.
  * @TODO free variables (value == undefined)
+ * @variation constructor
  */
 function Variable ( world, value ) {
     /**
@@ -503,11 +496,11 @@ function Variable ( world, value ) {
      * point to the same object, thus sharing structure.
      *
      * @typedef Variable
+     * @property {String} borjes - 'variable'
+     * @property {Name} index - if defined, the name of the bound value.
      */
     return {
-        /** @property {String} borjes - 'variable' */
         borjes: 'variable',
-        /** @property {Name} index - if defined, the name of the bound value. */
         index: World.put(world, value)
     };
 }
@@ -538,11 +531,9 @@ Variable.copy = function ( x, map ) {
     };
 }
 
-/**
- * PREDICATE
- * =========
- * @TODO revise
- */
+// PREDICATE
+// =========
+// TODO revise
 
 var predicates = {};
 
@@ -572,10 +563,8 @@ Predicate.copy = function ( pred, map ) {
     return predicates[pred.name].apply(null, args);
 }
 
-/**
- * UTILITY FUNCTIONS
- * =================
- */
+// UTILITY FUNCTIONS
+// =================
 
 /**
  * Compares two borjes objects for strict equality (only useful with primitive

@@ -1,16 +1,5 @@
 "use strict";
 
-/**
- * This module provides the Lexicon object.
- *
- * @exports Lexicon
- *
- * @example
- *     var Lexicon = require('borjes').Lexicon;
- *     var l = Lexicon();
- *     Lexicon.add(l, 'John', proper_noun);
- */
-
 var types = require('./types');
 
 var Nothing = types.Nothing;
@@ -27,11 +16,11 @@ function Lexicon () {
      * objects associated).
      *
      * @typedef Lexicon
+     * @property {String} borjes - 'lexicon'
+     * @property {Object} words - a mapping from strings to arrays of borjes objects
      */
     return {
-        /** @property {String} borjes - 'lexicon' */
         borjes: 'lexicon',
-        /** @property {Object} words - a mapping from strings to arrays of borjes objects */
         words: {}
     };
 }

@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * This module provides the unify function.
- *
- * @exports unify
- */
-
 var types = require('./types');
 
 var Nothing = types.Nothing;

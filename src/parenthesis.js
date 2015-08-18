@@ -1,12 +1,6 @@
 "use strict";
 
 /**
- * This module provides a parser for parenthesis expressions.
- *
- * @exports parse
- */
-
-/**
  * Gets the next token in the input string (for a parenthesis expression)
  * @private
  * @param {String} string - the string to parse
