@@ -62,7 +62,7 @@ function Rule ( mother, daughters, name, events ) {
  * @return {Borjes|Nothing} if the rule is matched, then the mother is returned.
  * Otherwise, Nothing is returned.
  */
-Rule.apply ( rule, xs ) {
+Rule.apply = function ( rule, xs ) {
     if (xs.length != rule.d.length) {
         if (!!rule.on.fail) { rule.on.fail(rule, xs, -1); }
         return Nothing;

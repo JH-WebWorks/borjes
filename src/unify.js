@@ -1,5 +1,11 @@
 "use strict";
 
+/**
+ * This module provides the unify function.
+ *
+ * @exports unify
+ */
+
 var types = require('./types');
 
 var Nothing = types.Nothing;
@@ -12,6 +18,19 @@ var Lattice = types.Lattice;
 var eq = types.eq;
 var copy = types.copy;
 
+/**
+ * Unification takes two Borjes objects, and returns their most general unifier.
+ *
+ * @param {Borjes} x
+ * @param {Borjes} y
+ * @param {World} [newworld] - this is a private parameter for the recursive
+ * call of unify. neworld is a world which unifies the worlds from x and y.
+ * @param {WorldMap} [leftmap] - a mapping from the world of x into newworld.
+ * @param {WorldMap} [rightmap] - a mapping from the world of y into newworld.
+ * @return {Borjes|Nothing} returns the mgu of x and y, with a unifying world
+ * bound if either of them had a world bound. If the mgu doesn't exist
+ * (unification is not possible/fails) then Nothing is returned.
+ */
 function unify (x, y, newworld, leftmap, rightmap) {
     if (x !== undefined && x.borjes === 'variable') {
         return unifyLeftVar(x, y, newworld, leftmap, rightmap);
@@ -51,6 +70,11 @@ function unify (x, y, newworld, leftmap, rightmap) {
     return Nothing;
 }
 
+/**
+ * Unifies two feature structures.
+ *
+ * @see unify for params.
+ */
 function unifyFS (x, y, nw, lm, rm) {
     var r = FStruct();
     var unified = {};
@@ -72,7 +96,14 @@ function unifyFS (x, y, nw, lm, rm) {
     return r;
 }
 
-/* x is tfs */
+/**
+ * Unifies a typed feature structure with another (possibly typed) feature
+ * structure.
+ *
+ * @param {TFS} x
+ * @param {TFS|FStruct} y
+ * @see unify for nw, lm and rm params
+ */
 function unifyTFS (x, y, nw, lm, rm) {
     if (y.borjes === 'tfstruct' || y.borjes === 'fstruct') {
         var type = unify(x.type, y.type, nw, lm, rm);
@@ -86,7 +117,15 @@ function unifyTFS (x, y, nw, lm, rm) {
     return Nothing;
 }
 
+/**
+ * Unifies two objects, at least one of them bound to a world.
+ *
+ * Creates a new world for the unification and binds it to the mgu.
+ * @see unify for the params
+ */
 function unifyBound (x, y, leftmap, rightmap) {
+    /** @TODO check if this two ifs are necessary, if they are true it's
+     * possibly an error */
     if (leftmap === undefined) { leftmap = {}; }
     if (rightmap === undefined) { rightmap = {}; }
     var newworld = World();
@@ -100,6 +139,12 @@ function unifyBound (x, y, leftmap, rightmap) {
     return u;
 }
 
+/**
+ * Unifies a variable with another object (possibly binding its value).
+ *
+ * @param {Variable} x
+ * @see unify for the rest of the params.
+ */
 function unifyLeftVar (x, y, nw, lm, rm) {
     var v;
     if (lm[x.index] !== undefined) {
