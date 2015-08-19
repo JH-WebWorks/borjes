@@ -9,8 +9,7 @@ var eq = types.eq;
 var copy = types.copy;
 
 /**
- * A rule has a number of daughters, which if matched produce the mother. It is
- * used for context-free parsing.
+ * Creates a new rule.
  *
  * @param {Borjes} mother - the object which should be constructed when the
  * daughters are matched.
@@ -30,6 +29,9 @@ var copy = types.copy;
  */
 function Rule ( mother, daughters, name, events ) {
     /**
+     * A rule has a number of daughters, which if matched produce the mother. It is
+     * used for context-free parsing.
+     *
      * @typedef Rule
      * @property {String} borjes - 'rule'
      * @property {Borjes[]} daughters

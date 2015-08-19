@@ -2,20 +2,22 @@
 
 var util = require('util');
 var fs = require('fs');
+var Borjes = require('../src/index');
 
-var Parser = require('../src/parser');
-var Read = require('../src/reader');
-var types = require('../src/types');
+
+var Parser = Borjes.parser;
+var Grammar = Borjes.grammar;
+var types = Borjes.types;
 var FStruct = types.FStruct;
 var Nothing = types.Nothing;
 var World = types.World;
 
-var formatter = require('../src/formatter');
+var formatter = Borjes.formatter;
 
 var grammarfile = process.argv[2];
 var testfile = process.argv[3];
 
-var grammar = Read.CFG(fs.readFileSync(grammarfile));
+var grammar = Grammar.CFG(fs.readFileSync(grammarfile));
 var sentences = fs.readFileSync(testfile, 'utf8').split('\n');
 
 var p = Parser(grammar);

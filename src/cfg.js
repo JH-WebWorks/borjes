@@ -3,6 +3,7 @@
 var types = require('./types');
 var Rule = require('./rule');
 var Lexicon = require('./lexicon');
+var Grammar = require('./grammar');
 var parse_pars = require('./parenthesis');
 var yaml = require('js-yaml');
 
@@ -38,7 +39,7 @@ var BORJES_SCHEMA = new yaml.Schema({
     explicit: [ JSFuncYML, LispFuncYML ]
 });
 
-exports.CFG = function ( description ) {
+module.exports = function ( description ) {
 
     var cfg = yaml.load(description, { schema: BORJES_SCHEMA });
 
@@ -72,7 +73,7 @@ exports.CFG = function ( description ) {
         return symbol;
     }
 
-    var grammar = { rules: [], lexicon: Lexicon() };
+    var grammar = Grammar();
 
     var preds = cfg.Predicates;
     if (preds) {
