@@ -4,7 +4,6 @@ var util = require('util');
 var fs = require('fs');
 var Borjes = require('../src/index');
 
-
 var Parser = Borjes.parser;
 var Grammar = Borjes.grammar;
 var types = Borjes.types;

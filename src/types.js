@@ -72,15 +72,14 @@ var lattices = {};
 /**
  * Creates a new lattice.
  *
- * @param {Number} max_elements - the maximum number of elements the lattice.
+ * @param {Number} [max_elements=64] - the maximum number of elements the lattice.
  * @param {String} [name] - an optional name to identify the lattice.
  * @return {Lattice} a new, empty lattice.
  * @variation constructor
  */
 function Lattice (max_elements, name) {
-    if (name === undefined) {
-        name = lattice_names++;
-    }
+    max_elements = max_elements || 64;
+    name = name || lattice_names++;
     /**
      * A lattice is a set of names (usually used for type hierarchies) which are
      * partially ordered.
@@ -165,12 +164,16 @@ Lattice.add = function (l, elem, subelems) {
  *
  * @param {Lattice} lattice - the lattice to which the element belongs.
  * @param {String} elem - the name of the element to retrieve.
- * @return {Lattice.element}
+ * @return {Lattice.element|Nothing} returns the element, or Nothing if no such
+ * name exists in the lattice.
  * @variation constructor
  */
 Lattice.element = function ( lattice, elem ) {
     if (typeof lattice !== 'object') {
         lattice = lattices[lattice];
+    }
+    if (!lattice.bits[elem]) {
+        return Nothing;
     }
     /**
      * @typedef Lattice.element
