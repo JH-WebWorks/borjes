@@ -412,10 +412,12 @@ function World () {
      * @typedef World
      * @property {String} borjes - 'world'
      * @property {Borjes[]} values - an array of values
+     * @property {String[]} titles - an array of optional titles for the values
      */
     return {
         borjes: 'world',
-        values: []
+        values: [],
+        titles: []
     };
 }
 
@@ -460,11 +462,14 @@ World.bind = function ( world, x ) {
  *
  * @param {World} world
  * @param {Borjes} x - the object to put.
+ * @param {String} [title] - an optional title for the object.
  * @return {Name} the name for the object in the world.
  */
-World.put = function ( world, x ) {
+World.put = function ( world, x, title ) {
     world.values.push(x);
-    return world.values.length-1;
+    var i = world.values.length-1;
+    world.titles.push(title===undefined?i:title);
+    return i;
 };
 
 /**
@@ -473,9 +478,13 @@ World.put = function ( world, x ) {
  * @param {World} world - the world to which the object belongs.
  * @param {Name} index - the name of the object.
  * @param {Borjes} x - the new value for the name.
+ * @param {String} [title] - an optional title for the value.
  */
-World.set = function ( world, index, x ) {
+World.set = function ( world, index, x, title ) {
     world.values[index] = x;
+    if (title !== undefined) {
+        world.titles[index] = title;
+    }
 };
 
 /**
