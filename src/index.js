@@ -11,5 +11,4 @@ exports.unify = require('./unify');
 
 var grammar = require('./grammar');
 grammar.CFG = require('./cfg');
-grammar.HPSG = require('./hpsg');
 exports.grammar = grammar;
