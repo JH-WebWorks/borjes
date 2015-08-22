@@ -25,7 +25,6 @@ primitive['nothing'] = true;
  * @typedef Anything
  * @property {String} borjes - 'anything'
  * @PRIMITIVE
- * @deprecated
  */
 var Anything = {
     borjes: 'anything'
