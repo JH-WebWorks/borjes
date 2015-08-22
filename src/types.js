@@ -257,7 +257,8 @@ function FStruct ( object, features ) {
  *
  * @param {FStruct} fs - the fstruct.
  * @param {String} feat - the name of the feature.
- * @param {Borjes} val - the value of the feature.
+ * @param {Borjes} val - the value of the feature. If null, the feature is
+ * removed.
  */
 FStruct.set = function ( fs, feat, val ) {
     var i;
@@ -266,10 +267,25 @@ FStruct.set = function ( fs, feat, val ) {
             break;
         }
     }
-    if (i==fs.f.length) {
-        fs.f.push(feat);
+    if (val === null) {
+        fs.f.splice(i, 1);
+        delete fs.v[feat];
+    } else {
+        if (i==fs.f.length) {
+            fs.f.push(feat);
+        }
+        fs.v[feat] = val;
     }
-    fs.v[feat] = val;
+}
+
+/**
+ * Removes a feature from a feature structure.
+ *
+ * @param {FStruct} fs
+ * @param {String} feat - the name of the feature to remove.
+ */
+FStruct.unset = function ( fs, feat ) {
+    FStruct.set(fs, feat, null);
 }
 
 /**
