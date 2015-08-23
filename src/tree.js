@@ -4,7 +4,7 @@
  * Creates a new tree, with a parent node and its direct children.
  *
  * @param {Any} node - the parent/root node of the tree.
- * @param {Tree[]} [children] - the children of the root, each of them subtrees.
+ * @param {Borjes[]} [children] - the children of the root.
  * @return {Tree}
  */
 function Tree (node, children) {
@@ -32,7 +32,7 @@ function Tree (node, children) {
  * Adds some children to the root node of a tree.
  *
  * @param {Tree} tree
- * @param {Tree[]} children
+ * @param {Borjes[]} children
  */
 Tree.add_children = function (tree, children) {
     tree.children = tree.children.concat(children);
@@ -53,6 +53,9 @@ var id = function (x) { return x; };
  */
 Tree.to_sexp = function (tree, map) {
     if (map === undefined) { map = id; }
+    if (tree.borjes !== 'tree') {
+        return map(tree);
+    }
     var sexp = [ map(tree.node) ];
     for (var i=0; i<tree.children.length; i++) {
         sexp.push(Tree.to_sexp(tree.children[i], map));
