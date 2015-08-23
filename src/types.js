@@ -190,6 +190,16 @@ Lattice.element = function ( lattice, elem ) {
 primitive['latticeel'] = true;
 
 /**
+ * Gets the lattice an element belongs to.
+ *
+ * @param {Lattice.element} elem
+ * @return {Lattice}
+ */
+Lattice.from_element = function ( elem ) {
+    return lattices[elem.l];
+}
+
+/**
  * Finds the greatest lower bound common to the two elements.
  *
  * @param {Lattice.element} x
