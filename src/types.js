@@ -159,6 +159,44 @@ Lattice.add = function (l, elem, subelems) {
 }
 
 /**
+ * Creates a lattice from a prototype hierarchy.
+ *
+ * @param {Object} proto - an object, where keys are lattice elements and their
+ * values are sub-objects with the dominated elements. Terminal nodes can be
+ * marked either with empty objects or with null.
+ * @param {String} [name] - a name for the lattice.
+ * @return {Lattice} a new lattice.
+ */
+Lattice.fromProto = function ( proto, name ) {
+    var countCB = function (x) {
+        var c = 0;
+        for (var k in x) {
+            if (x[k] !== null) {
+                c += countCB(x[k]);
+            }
+        }
+        return c;
+    };
+    var L = Lattice(countCB(proto), name);
+    var els = {};
+    var addElements = function (x) {
+        for (var k in x) {
+            if (els[k] !== undefined) { continue; }
+            var ch = [];
+            if (x[k] !== null) {
+                addElements(x[k]);
+                ch = Object.keys(x[k]).map(function (name) {
+                    return els[name];
+                });
+            }
+            els[k] = Lattice.add(L, k, ch);
+        }
+    };
+    addElements(proto);
+    return L;
+}
+
+/**
  * Gets a lattice element by name.
  *
  * @param {Lattice} lattice - the lattice to which the element belongs.
