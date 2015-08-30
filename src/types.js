@@ -691,7 +691,11 @@ function copy ( x, map ) {
         c = Predicate.copy(x, map);
     }
     if (x.borjes_bound !== undefined) {
-        World.bind(map.nw, c);
+        if (map !== undefined) {
+            World.bind(map.nw, c);
+        } else {
+            World.bind(copy(x.borjes_bound), c);
+        }
     }
     return c;
 }
