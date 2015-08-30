@@ -685,6 +685,8 @@ function copy ( x, map ) {
     var c = Nothing;
     if (x.borjes === 'fstruct') {
         c = copy_fs(x, map);
+    } else if (x.borjes === 'tfstruct') {
+        c = copy_tfs(x, map);
     } else if (x.borjes === 'variable') {
         c = Variable.copy(x, map);
     } else if (x.borjes === 'predicate') {
@@ -726,6 +728,9 @@ function compare ( x, y, worldx, worldy ) {
     }
     if (x.borjes === 'fstruct') {
         return compare_fs(x, y, worldx, worldy);
+    }
+    if (x.borjes === 'tfstruct') {
+        return compare_tfs(x, y, worldx, worldy);
     }
     return false;
 }
