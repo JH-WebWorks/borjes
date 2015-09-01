@@ -150,8 +150,8 @@ assert(compare(U(l_var_cf, l_ec), l_bc));
 assert(eq(U(l_var_cf, l_cd), Nothing));
 
 /* Disjuncts */
-var e_o_f = Disjunct([els.e, els.f]);
-var a_o_b = Disjunct([els.a, els.b]);
+var e_o_f = Disjunct(els.e, els.f);
+var a_o_b = Disjunct(els.a, els.b);
 
 assert(eq(U(e_o_f, els.d), els.d));
 var res_d1 = U(a_o_b, e_o_f);
@@ -159,7 +159,7 @@ assert(eq(res_d1[0], els.a));
 assert(eq(res_d1[1], els.b));
 assert(eq(res_d1[2], els.b));
 
-var nested = Disjunct([pepa, Disjunct([pepa2, kozu])]);
+var nested = Disjunct(pepa, Disjunct(pepa2, kozu));
 assert(eq(U(nested, kozu), kozu));
 var res_d2 = U(nested, pepa);
 assert(eq(res_d2[0], pepa));
@@ -167,7 +167,7 @@ assert(eq(res_d2[0], pepa2));
 assert(eq(res_d2[1], pepa2));
 
 var discworld = World();
-var discvars = Disjunct([els.e, Variable(discworld, els.f)]);
+var discvars = Disjunct(els.e, Variable(discworld, els.f));
 World.bind(discworld, discvars);
 var res_d3 = U(discvars, els.a);
 assert(eq(World.resolve(res_d3.borjes_bound, res_d3), els.a));

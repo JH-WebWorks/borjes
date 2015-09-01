@@ -667,10 +667,14 @@ List.copy = function (x, map) {
 /**
  * Creates a disjunction.
  *
- * @param {Borjes[]} alternatives.
+ * @param {Borjes...} alternatives.
  * @return {Disjunct}
  */
-function Disjunct (alternatives) {
+function Disjunct () {
+    var a = [];
+    for (var i = 0; i<arguments.length; i++) {
+        a.push(arguments[i]);
+    }
     /**
      * A disjunct, an object which can be a series of different alternatives.
      *
@@ -680,7 +684,7 @@ function Disjunct (alternatives) {
      */
     return {
         borjes: 'disjunct',
-        a: alternatives
+        a: a
     };
 }
 
