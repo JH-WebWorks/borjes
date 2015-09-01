@@ -17,23 +17,21 @@ var copy = types.copy;
  *
  * @param {Borjes} x
  * @param {Borjes} y
- * @param {World} [newworld] - this is a private parameter for the recursive
- * call of unify. neworld is a world which unifies the worlds from x and y.
- * @param {WorldMap} [leftmap] - a mapping from the world of x into newworld.
- * @param {WorldMap} [rightmap] - a mapping from the world of y into newworld.
+ * @param {UniCtx} [ux] - the context of the current unification (for recursive
+ * calling).
  * @return {Borjes|Nothing} returns the mgu of x and y, with a unifying world
  * bound if either of them had a world bound. If the mgu doesn't exist
  * (unification is not possible/fails) then Nothing is returned.
  */
-function unify (x, y, newworld, leftmap, rightmap) {
+function unify (x, y, ux) {
     if (x !== undefined && x.borjes === 'variable') {
-        return unifyLeftVar(x, y, newworld, leftmap, rightmap);
+        return unifyVar(x, y, ux, true);
     }
     if (y !== undefined && y.borjes === 'variable') {
-        return unifyLeftVar(y, x, newworld, rightmap, leftmap);
+        return unifyVar(x, y, ux, false);
     }
-    if (x === undefined) { return copy(y, rightmap); }
-    if (y === undefined) { return copy(x, leftmap); }
+    if (x === undefined) { return copy(y, ux?ux.rightmap:undefined); }
+    if (y === undefined) { return copy(x, ux?ux.leftmap:undefined); }
     if (eq(x, y)) {
         return copy(x); // only primitive values can be eq, so no maps necessary
     }
@@ -41,28 +39,27 @@ function unify (x, y, newworld, leftmap, rightmap) {
         return Nothing;
     }
     if (eq(x, Anything)) {
-        return copy(y, rightmap);
+        return copy(y, ux?ux.rightmap:undefined);
     }
     if (eq(y, Anything)) {
-        return copy(x, leftmap);
+        return copy(x, ux?ux.leftmap:undefined);
     }
     if (x.borjes === 'latticeel' && y.borjes === 'latticeel') {
         return Lattice.meet(x, y);
     }
-    if ((x.borjes_bound !== undefined || y.borjes_bound !== undefined) && (newworld === undefined)) {
-        return unifyBound(x, y, leftmap, rightmap);
+    if ((x.borjes_bound !== undefined || y.borjes_bound !== undefined) && (ux === undefined)) {
+        return unifyBound(x, y);
     }
     if (x.borjes === 'fstruct' && y.borjes === 'fstruct') {
-        return unifyFS(x, y, newworld, leftmap, rightmap);
+        return unifyFS(x, y, ux);
     }
-    if (x.borjes === 'tfstruct') {
-        return unifyTFS(x, y, newworld, leftmap, rightmap);
-    }
-    if (y.borjes === 'tfstruct') {
-        return unifyTFS(y, x, newworld, rightmap, leftmap);
+    if ((x.borjes === 'tfstruct' && y.borjes === 'tfstruct')
+        || (x.borjes === 'tfstruct' && y.borjes === 'fstruct')
+        || (x.borjes === 'fstruct' && y.borjes === 'tfstruct')) {
+        return unifyTFS(x, y, ux);
     }
     if (x.borjes === 'list' && y.borjes === 'list') {
-        return unifyLists(x, y, newworld, leftmap, rightmap);
+        return unifyLists(x, y, ux);
     }
     return Nothing;
 }
@@ -72,12 +69,12 @@ function unify (x, y, newworld, leftmap, rightmap) {
  *
  * @see unify for params.
  */
-function unifyFS (x, y, nw, lm, rm) {
+function unifyFS (x, y, ux) {
     var r = FStruct();
     var unified = {};
     for (var i = 0; i<x.f.length; i++) {
         var f = x.f[i];
-        var u = unify(x.v[f], y.v[f], nw, lm, rm);
+        var u = unify(x.v[f], y.v[f], ux);
         if (eq(u, Nothing)) { return Nothing; }
         r.f.push(f);
         r.v[f] = u;
@@ -87,7 +84,7 @@ function unifyFS (x, y, nw, lm, rm) {
         var f = y.f[j];
         if (!unified[f]) {
             r.f.push(f);
-            r.v[f] = unify(x.v[f], y.v[f], nw, lm, rm);
+            r.v[f] = unify(x.v[f], y.v[f], ux);
         }
     }
     return r;
@@ -99,19 +96,40 @@ function unifyFS (x, y, nw, lm, rm) {
  *
  * @param {TFS} x
  * @param {TFS|FStruct} y
- * @see unify for nw, lm and rm params
+ * @see unify for ux
  */
-function unifyTFS (x, y, nw, lm, rm) {
-    if (y.borjes === 'tfstruct' || y.borjes === 'fstruct') {
-        var type = unify(x.type, y.type, nw, lm, rm);
-        if (type === Nothing) { return Nothing; }
-        var mgu = unifyFS(x, y, nw, lm, rm);
-        if (mgu === Nothing) { return Nothing; }
-        mgu.borjes = 'tfstruct';
-        mgu.type = type;
-        return mgu;
-    }
-    return Nothing;
+function unifyTFS (x, y, ux) {
+    var type = unify(x.type, y.type, ux);
+    if (type === Nothing) { return Nothing; }
+    var mgu = unifyFS(x, y, ux);
+    if (mgu === Nothing) { return Nothing; }
+    mgu.borjes = 'tfstruct';
+    mgu.type = type;
+    return mgu;
+}
+
+/**
+ * Creates a new unification context for x and y.
+ *
+ * @param {Borjes} x
+ * @param {Borjes} y
+ */
+function UniCtx (x, y) {
+    var nw = World();
+    /**
+     * The current context of a unification process.
+     *
+     * @typedef UniCtx
+     * @param {World} [newworld] - this is a private parameter for the recursive
+     * call of unify. neworld is a world which unifies the worlds from x and y.
+     * @param {WorldMap} [leftmap] - a mapping from the world of x into newworld.
+     * @param {WorldMap} [rightmap] - a mapping from the world of y into newworld.
+     */
+    return {
+        newworld: nw,
+        leftmap: { _w: x.borjes_bound, _nw: nw },
+        rightmap: { _w: y.borjes_bound, _nw: nw }
+    };
 }
 
 /**
@@ -120,19 +138,11 @@ function unifyTFS (x, y, nw, lm, rm) {
  * Creates a new world for the unification and binds it to the mgu.
  * @see unify for the params
  */
-function unifyBound (x, y, leftmap, rightmap) {
-    /** @TODO check if this two ifs are necessary, if they are true it's
-     * possibly an error */
-    if (leftmap === undefined) { leftmap = {}; }
-    if (rightmap === undefined) { rightmap = {}; }
-    var newworld = World();
-    leftmap.w = x.borjes_bound;
-    leftmap.nw = newworld;
-    rightmap.w = y.borjes_bound;
-    rightmap.nw = newworld;
-    var u = unify(x, y, newworld, leftmap, rightmap);
+function unifyBound (x, y) {
+    var ux = UniCtx(x, y);
+    var u = unify(x, y, ux);
     if (eq(u, Nothing)) { return Nothing; }
-    World.bind(newworld, u);
+    World.bind(ux.newworld, u);
     return u;
 }
 
@@ -140,24 +150,27 @@ function unifyBound (x, y, leftmap, rightmap) {
  * Unifies a variable with another object (possibly binding its value).
  *
  * @param {Variable} x
+ * @param {boolean} left - if true, x is variable, otherwise y is.
  * @see unify for the rest of the params.
  */
-function unifyLeftVar (x, y, nw, lm, rm) {
+function unifyVar (x, y, ux, left) {
     var v;
-    if (lm[x.index] !== undefined) {
-        v = World.get(nw, lm[x.index]);
+    var map = left ? ux.leftmap : ux.rightmap;
+    var who = left ? x.index : y.index;
+    if (map[who] !== undefined) {
+        v = World.get(ux.newworld, map[who]);
     } else {
-        v = World.get(lm.w, x.index);
+        v = World.get(map._w, who);
     }
-    var u = unify(v, y, nw, lm, rm);
+    var u = left ? unify(v, y, ux) : unify(x, v, ux);
     if (u !== undefined && eq(u, Nothing)) { return Nothing; }
     var r;
-    if (lm[x.index] !== undefined) {
-        r = copy(x, lm);
-        World.set(nw, lm[x.index], u);
+    if (map[who] !== undefined) {
+        r = copy(left?x:y, map);
+        World.set(ux.newworld, map[who], u);
     } else {
-        r = Variable(nw, u);
-        lm[x.index] = r.index;
+        r = Variable(ux.newworld, u);
+        map[who] = r.index;
     }
     return r;
 }
@@ -167,10 +180,10 @@ function unifyLeftVar (x, y, nw, lm, rm) {
  *
  * @see unify for the params.
  */
-function unifyLists (x, y, nw, lm, rm) {
-    var f = unify(x.first, y.first, nw, lm, rm);
+function unifyLists (x, y, ux) {
+    var f = unify(x.first, y.first, ux);
     if (eq(f, Nothing)) { return Nothing; }
-    var r = unify(x.rest, y.rest, nw, lm, rm);
+    var r = unify(x.rest, y.rest, ux);
     if (eq(r, Nothing)) { return Nothing; }
     return types.List(f, r);
 }

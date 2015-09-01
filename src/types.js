@@ -57,6 +57,7 @@ primitive['literal'] = true;
 // LATTICE
 // =======
 // TODO try to remove static collection of lattices.
+// refactor: turn into a global "context"
 
 /**
  * An auto-increment counter for assigning names to lattices.
@@ -593,8 +594,8 @@ Variable.copy = function ( x, map ) {
         if (map[x.index] !== undefined) {
             i = map[x.index];
         } else {
-            i = World.put(map.nw,
-                copy(World.get(map.w, x.index),map));
+            i = World.put(map._nw,
+                copy(World.get(map._w, x.index),map));
             map[x.index] = i;
         }
     } else {
@@ -686,7 +687,7 @@ Predicate.copy = function ( pred, map ) {
         if (typeof p !== 'object' || p.borjes !== 'variable') {
             args.push(copy(p, map));
         } else {
-            args.push(World.resolve(map.nw, Variable.copy(p, map)));
+            args.push(World.resolve(map._nw, Variable.copy(p, map)));
         }
     }
     return predicates[pred.name].apply(null, args);
@@ -750,7 +751,7 @@ function copy ( x, map ) {
     }
     if (x.borjes_bound !== undefined) {
         if (map !== undefined) {
-            World.bind(map.nw, c);
+            World.bind(map._nw, c);
         } else {
             World.bind(copy(x.borjes_bound), c);
         }
@@ -788,7 +789,7 @@ function compare ( x, y, worldx, worldy ) {
     if (x.borjes === 'tfstruct') {
         return compare_tfs(x, y, worldx, worldy);
     }
-    if (x.borjes === 'list' && y.borjes === 'list') {
+    if (x.borjes === 'list') {
         return compare(x.first, y.first, worldx, worldy)
                && compare(x.rest, y.rest, worldx, worldy);
     }
