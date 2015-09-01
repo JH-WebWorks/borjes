@@ -9,6 +9,7 @@ var Literal = types.Literal;
 var FStruct = types.FStruct;
 var World = types.World;
 var Variable = types.Variable;
+var List = types.List;
 var Lattice = types.Lattice;
 var eq = types.eq;
 var compare = types.compare;
@@ -123,3 +124,26 @@ assert(eq(U(els.f, els.c), els.c));
 assert(eq(U(els.e, els.d), els.d));
 assert(eq(U(els.f, els.d), Nothing));
 assert(eq(U(els.a, els.d), Nothing));
+
+/* Lists */
+var empty = List();
+var empty2 = List();
+var l_cf = List(els.c, List(els.f));
+var l_ec = List(els.e, List(els.c));
+var l_bc = List(els.b, List(els.c));
+var l_cd = List(els.c, List(els.d));
+var l_cfe = List(els.c, List(els.f, List(els.e)));
+
+var l_world = World();
+var l_var_cf = List(els.c, Variable(l_world, List(els.f)));
+World.bind(l_world, l_var_cf);
+
+assert(eq(empty, empty2));
+assert(eq(U(empty, empty2), empty));
+assert(eq(U(l_cf, empty), Nothing));
+assert(compare(U(l_cf, l_ec), l_bc));
+assert(eq(U(l_cf, l_cd), Nothing));
+assert(eq(U(l_cf, l_cfe), Nothing));
+
+assert(compare(U(l_var_cf, l_ec), l_bc));
+assert(eq(U(l_var_cf, l_cd), Nothing));

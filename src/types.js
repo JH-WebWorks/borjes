@@ -606,6 +606,60 @@ Variable.copy = function ( x, map ) {
     };
 }
 
+// LIST
+// ====
+
+/**
+ * Creates a new list.
+ *
+ * @param {Any} [first] - if undefined, the list is empty
+ * @param {List} [rest=List()]
+ * @return {List}
+ */
+function List (first, rest) {
+    if (first === undefined) {
+        /**
+         * An empty list.
+         * @typedef List.empty
+         * @property {String} borjes - 'list_empty'
+         * @PRIMITIVE
+         */
+        return { borjes: 'list_empty' };
+    }
+    if (rest === undefined) {
+        rest = { borjes: 'list_empty' };
+    }
+    /**
+     * A functional-like recursive list data-type.
+     *
+     * @typedef List
+     * @property {String} borjes - 'list'
+     * @property {Any} first - the first element.
+     * @property {List} rest - a list with the rest of the elements.
+     */
+    return {
+        borjes: 'list',
+        first: first,
+        rest: rest
+    };
+}
+primitive['list_empty'] = true;
+
+/**
+ * Copies a non-empty list, copying its elements.
+ *
+ * @param {List} x - the list to copy.
+ * @param {WorldMap} [map] - a mapping from old world names to new ones.
+ * @return {List}
+ */
+List.copy = function (x, map) {
+    return {
+        borjes: 'list',
+        first: copy(x.first, map),
+        rest: copy(x.rest, map)
+    };
+}
+
 // PREDICATE
 // =========
 // TODO revise
@@ -656,7 +710,7 @@ function eq ( x, y ) {
     if (x.borjes !== y.borjes) {
         return false;
     }
-    if (x.borjes === 'nothing' || y.borjes === 'anything') {
+    if (x.borjes === 'nothing' || x.borjes === 'anything' || x.borjes === 'list_empty') {
         return true;
     }
     if (x.borjes === 'literal') {
@@ -689,6 +743,8 @@ function copy ( x, map ) {
         c = copy_tfs(x, map);
     } else if (x.borjes === 'variable') {
         c = Variable.copy(x, map);
+    } else if (x.borjes === 'list') {
+        c = List.copy(x, map);
     } else if (x.borjes === 'predicate') {
         c = Predicate.copy(x, map);
     }
@@ -732,6 +788,10 @@ function compare ( x, y, worldx, worldy ) {
     if (x.borjes === 'tfstruct') {
         return compare_tfs(x, y, worldx, worldy);
     }
+    if (x.borjes === 'list' && y.borjes === 'list') {
+        return compare(x.first, y.first, worldx, worldy)
+               && compare(x.rest, y.rest, worldx, worldy);
+    }
     return false;
 }
 
@@ -744,6 +804,7 @@ module.exports = {
     TFS: TFS,
     World: World,
     Variable: Variable,
+    List: List,
     Predicate: Predicate,
     eq: eq,
     copy: copy,

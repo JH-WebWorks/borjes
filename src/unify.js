@@ -61,6 +61,9 @@ function unify (x, y, newworld, leftmap, rightmap) {
     if (y.borjes === 'tfstruct') {
         return unifyTFS(y, x, newworld, rightmap, leftmap);
     }
+    if (x.borjes === 'list' && y.borjes === 'list') {
+        return unifyLists(x, y, newworld, leftmap, rightmap);
+    }
     return Nothing;
 }
 
@@ -157,6 +160,19 @@ function unifyLeftVar (x, y, nw, lm, rm) {
         lm[x.index] = r.index;
     }
     return r;
+}
+
+/**
+ * Unifies two non-empty lists.
+ *
+ * @see unify for the params.
+ */
+function unifyLists (x, y, nw, lm, rm) {
+    var f = unify(x.first, y.first, nw, lm, rm);
+    if (eq(f, Nothing)) { return Nothing; }
+    var r = unify(x.rest, y.rest, nw, lm, rm);
+    if (eq(r, Nothing)) { return Nothing; }
+    return types.List(f, r);
 }
 
 module.exports = unify;

@@ -1,11 +1,11 @@
 "use strict";
 
 exports.formatter = require('./formatter');
-exports.lexicon = require('./lexicon');
+exports.Lexicon = require('./lexicon');
 exports.parenthesis = require('./parenthesis');
-exports.parser = require('./parser');
-exports.rule = require('./rule');
-exports.tree = require('./tree');
+exports.Parser = require('./parser');
+exports.Rule = require('./rule');
+exports.Tree = require('./tree');
 exports.types = require('./types');
 exports.unify = require('./unify');
 
