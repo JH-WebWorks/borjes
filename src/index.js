@@ -11,4 +11,4 @@ exports.unify = require('./unify');
 
 var grammar = require('./grammar');
 grammar.CFG = require('./cfg');
-exports.grammar = grammar;
+exports.Grammar = grammar;
