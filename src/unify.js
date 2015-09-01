@@ -46,22 +46,27 @@ function UniCtx (x, y) {
  *
  * @param {Borjes} x
  * @param {Borjes} y
+ * @param {boolean} [as_array=false] - if true, the results are always returned
+ * as an array.
  * @return {Nothing|Borjes|Borjes[]}
  */
-function unifyAll (x, y) {
-    var ux = UniCtx(x, y);
+function unifyAll (x, y, as_array) {
     var r = [];
+    var stack = [];
     do {
+        var ux = UniCtx(x, y);
+        ux.stack = stack;
         var u = unify(x, y, ux);
         if (!eq(u, Nothing)) {
             // TODO normalize
             World.bind(ux.newworld, u);
             r.push(u);
         }
-    } while (ux.stack.length > 0);
-    if (r.length === 0) { return Nothing; }
+        stack = ux.stack;
+    } while (stack.length > 0);
+    if (as_array || r.length > 1) { return r; }
     if (r.length === 1) { return r[0]; }
-    return r;
+    return Nothing;
 }
 
 /**
@@ -76,6 +81,12 @@ function unifyAll (x, y) {
  * (unification is not possible/fails) then Nothing is returned.
  */
 function unify (x, y, ux) {
+    if (x !== undefined && x.borjes === 'disjunct') {
+        return unifyDisj(x, y, ux, true);
+    }
+    if (y !== undefined && y.borjes === 'disjunct') {
+        return unifyDisj(x, y, ux, false);
+    }
     if (x !== undefined && x.borjes === 'variable') {
         return unifyVar(x, y, ux, true);
     }
@@ -197,6 +208,34 @@ function unifyLists (x, y, ux) {
     var r = unify(x.rest, y.rest, ux);
     if (eq(r, Nothing)) { return Nothing; }
     return types.List(f, r);
+}
+
+/**
+ * Unifies two disjuncts.
+ *
+ * @param {boolean} left - if true, x is a disjunct, otherwise y is.
+ * @see unify for the params.
+ */
+function unifyDisj (x, y, ux, left) {
+    var st = ux.stack;
+    var who = left ? x : y;
+    var uip = who.borjes_uip;
+    var ix, u;
+    if (!uip) {
+        who.borjes_uip = { at: 0 };
+        uip = who.borjes_uip;
+        st.push(uip);
+    }
+    var u = left ? unify(x.a[uip.at], y, ux)
+                 : unify(x, y.a[uip.at], ux);
+    if (st[st.length-1] === uip) {
+        uip.at += 1;
+        if (uip.at >= who.a.length) {
+            st.pop();
+            delete who.borjes_uip;
+        }
+    }
+    return u;
 }
 
 module.exports = unifyAll;
