@@ -661,6 +661,66 @@ List.copy = function (x, map) {
     };
 }
 
+// DISJUNCT
+// ========
+
+/**
+ * Creates a disjunction.
+ *
+ * @param {Borjes[]} alternatives.
+ * @return {Disjunct}
+ */
+function Disjunct (alternatives) {
+    /**
+     * A disjunct, an object which can be a series of different alternatives.
+     *
+     * @typedef Disjunct
+     * @property {String} borjes - 'disjunct'
+     * @property {Borjes[]} a - the alternatives.
+     */
+    return {
+        borjes: 'disjunct',
+        a: alternatives
+    };
+}
+
+/**
+ * Copies a disjunction.
+ *
+ * @param {Disjunct} x
+ * @param {WorldMap} map
+ * @return {Disjunct}
+ */
+Disjunct.copy = function (x, map) {
+    return {
+        borjes: 'disjunct',
+        a: x.a.map(function(y) {
+            return copy(y, map);
+        })
+    };
+}
+
+/**
+ * Compares disjuncts.
+ *
+ * @param {Disjunct} x
+ * @param {Disjunct} y
+ * @param {World} wx - the world of x
+ * @param {World} wy - the world of y
+ * @return {boolean} true if all options are comparable (and in the same order).
+ */
+function compare_disjunct (x, y, wx, wy) {
+    if (x.a.length !== y.a.length) {
+        return false;
+    }
+    for (var i=0; i<x.a.length; i++) {
+        if (!compare(x.a[i], y.a[i], wx, wy)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // PREDICATE
 // =========
 // TODO revise
@@ -748,6 +808,8 @@ function copy ( x, map ) {
         c = List.copy(x, map);
     } else if (x.borjes === 'predicate') {
         c = Predicate.copy(x, map);
+    } else if (x.borjes === 'disjunct') {
+        c = Disjunct.copy(x, map);
     }
     if (x.borjes_bound !== undefined) {
         if (map !== undefined) {
@@ -793,6 +855,9 @@ function compare ( x, y, worldx, worldy ) {
         return compare(x.first, y.first, worldx, worldy)
                && compare(x.rest, y.rest, worldx, worldy);
     }
+    if (x.borjes === 'disjunct') {
+        return compare_disjunct(x, y, worldx, worldy);
+    }
     return false;
 }
 
@@ -806,6 +871,7 @@ module.exports = {
     World: World,
     Variable: Variable,
     List: List,
+    Disjunct: Disjunct,
     Predicate: Predicate,
     eq: eq,
     copy: copy,
