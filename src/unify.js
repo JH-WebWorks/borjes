@@ -12,6 +12,58 @@ var Lattice = types.Lattice;
 var eq = types.eq;
 var copy = types.copy;
 
+// NOTE: worlds must always be in top-level objects. Otherwise everything
+// breaks.
+
+/**
+ * Creates a new unification context for x and y.
+ *
+ * @param {Borjes} x
+ * @param {Borjes} y
+ */
+function UniCtx (x, y) {
+    var nw = World();
+    /**
+     * The current context of a unification process.
+     *
+     * @typedef UniCtx
+     * @param {World} newworld - this is a private parameter for the recursive
+     * call of unify. neworld is a world which unifies the worlds from x and y.
+     * @param {WorldMap} leftmap - a mapping from the world of x into newworld.
+     * @param {WorldMap} rightmap - a mapping from the world of y into newworld.
+     * @param stack
+     */
+    return {
+        newworld: nw,
+        leftmap: { _w: x.borjes_bound, _nw: nw },
+        rightmap: { _w: y.borjes_bound, _nw: nw },
+        stack: []
+    };
+}
+
+/**
+ * Returns all possible unifications of x and y.
+ *
+ * @param {Borjes} x
+ * @param {Borjes} y
+ * @return {Nothing|Borjes|Borjes[]}
+ */
+function unifyAll (x, y) {
+    var ux = UniCtx(x, y);
+    var r = [];
+    do {
+        var u = unify(x, y, ux);
+        if (!eq(u, Nothing)) {
+            // TODO normalize
+            World.bind(ux.newworld, u);
+            r.push(u);
+        }
+    } while (ux.stack.length > 0);
+    if (r.length === 0) { return Nothing; }
+    if (r.length === 1) { return r[0]; }
+    return r;
+}
+
 /**
  * Unification takes two Borjes objects, and returns their most general unifier.
  *
@@ -30,8 +82,8 @@ function unify (x, y, ux) {
     if (y !== undefined && y.borjes === 'variable') {
         return unifyVar(x, y, ux, false);
     }
-    if (x === undefined) { return copy(y, ux?ux.rightmap:undefined); }
-    if (y === undefined) { return copy(x, ux?ux.leftmap:undefined); }
+    if (x === undefined) { return copy(y, ux.rightmap); }
+    if (y === undefined) { return copy(x, ux.leftmap); }
     if (eq(x, y)) {
         return copy(x); // only primitive values can be eq, so no maps necessary
     }
@@ -39,16 +91,13 @@ function unify (x, y, ux) {
         return Nothing;
     }
     if (eq(x, Anything)) {
-        return copy(y, ux?ux.rightmap:undefined);
+        return copy(y, ux.rightmap);
     }
     if (eq(y, Anything)) {
-        return copy(x, ux?ux.leftmap:undefined);
+        return copy(x, ux.leftmap);
     }
     if (x.borjes === 'latticeel' && y.borjes === 'latticeel') {
         return Lattice.meet(x, y);
-    }
-    if ((x.borjes_bound !== undefined || y.borjes_bound !== undefined) && (ux === undefined)) {
-        return unifyBound(x, y);
     }
     if (x.borjes === 'fstruct' && y.borjes === 'fstruct') {
         return unifyFS(x, y, ux);
@@ -109,44 +158,6 @@ function unifyTFS (x, y, ux) {
 }
 
 /**
- * Creates a new unification context for x and y.
- *
- * @param {Borjes} x
- * @param {Borjes} y
- */
-function UniCtx (x, y) {
-    var nw = World();
-    /**
-     * The current context of a unification process.
-     *
-     * @typedef UniCtx
-     * @param {World} [newworld] - this is a private parameter for the recursive
-     * call of unify. neworld is a world which unifies the worlds from x and y.
-     * @param {WorldMap} [leftmap] - a mapping from the world of x into newworld.
-     * @param {WorldMap} [rightmap] - a mapping from the world of y into newworld.
-     */
-    return {
-        newworld: nw,
-        leftmap: { _w: x.borjes_bound, _nw: nw },
-        rightmap: { _w: y.borjes_bound, _nw: nw }
-    };
-}
-
-/**
- * Unifies two objects, at least one of them bound to a world.
- *
- * Creates a new world for the unification and binds it to the mgu.
- * @see unify for the params
- */
-function unifyBound (x, y) {
-    var ux = UniCtx(x, y);
-    var u = unify(x, y, ux);
-    if (eq(u, Nothing)) { return Nothing; }
-    World.bind(ux.newworld, u);
-    return u;
-}
-
-/**
  * Unifies a variable with another object (possibly binding its value).
  *
  * @param {Variable} x
@@ -188,4 +199,4 @@ function unifyLists (x, y, ux) {
     return types.List(f, r);
 }
 
-module.exports = unify;
+module.exports = unifyAll;
