@@ -46,12 +46,12 @@ function exhaust ( p, from, to ) {
         var rule = p.rules[i];
         var legs = all_legs(p, from, to, rule.arity);
         for (var j = 0; j<legs.length; j++) {
-            var mother = Rule.apply(rule, legs[j].map(function(t) {
+            var mothers = Rule.apply(rule, legs[j].map(function(t) {
                 return t.node;
             }));
-            if (mother !== Nothing) {
-                cell.push(Tree(mother, legs[j]));
-            }
+            mothers.forEach(function(m) {
+                cell.push(Tree(m, legs[j]));
+            });
         }
     }
 };

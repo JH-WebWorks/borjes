@@ -548,6 +548,9 @@ function copy_world ( x, map ) {
         borjes: 'world',
         values: x.values.map(function(v) {
             return copy(v, map);
+        }),
+        titles: x.titles.map(function (t) {
+            return t;
         })
     };
 }

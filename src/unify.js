@@ -20,9 +20,36 @@ var copy = types.copy;
  *
  * @param {Borjes} x
  * @param {Borjes} y
+ * @param {Object} defaults
  */
-function UniCtx (x, y) {
-    var nw = World();
+function UniCtx (x, y, defaults) {
+    var nw, lm = {}, rm = {};
+    if (defaults !== undefined) {
+        nw = defaults.newworld ? copy(defaults.newworld) : undefined;
+        if (defaults.leftmap) {
+            var olm = defaults.leftmap;
+            lm._w = olm._w;
+            Object.keys(olm).forEach(function (k) {
+                if (k !== '_w' && k !== '_nw') {
+                    lm[k] = olm[k];
+                }
+            });
+        }
+        if (defaults.rightmap) {
+            var orm = defaults.rightmap;
+            rm._w = orm._w;
+            Object.keys(orm).forEach(function (k) {
+                if (k !== '_w' && k !== '_nw') {
+                    rm[k] = orm[k];
+                }
+            });
+        }
+    }
+    nw = nw || World();
+    lm._nw = nw;
+    rm._nw = nw;
+    lm._w = lm._w || x.borjes_bound;
+    rm._w = rm._w || y.borjes_bound;
     /**
      * The current context of a unification process.
      *
@@ -35,8 +62,8 @@ function UniCtx (x, y) {
      */
     return {
         newworld: nw,
-        leftmap: { _w: x.borjes_bound, _nw: nw },
-        rightmap: { _w: y.borjes_bound, _nw: nw },
+        leftmap: lm,
+        rightmap: rm,
         stack: []
     };
 }
@@ -47,19 +74,21 @@ function UniCtx (x, y) {
  * @param {Borjes} x
  * @param {Borjes} y
  * @param {boolean} [as_array=false] - if true, the results are always returned
+ * @param {Object} defaults - {newworld, leftmap, rightmap}
  * as an array.
  * @return {Nothing|Borjes|Borjes[]}
  */
-function unifyAll (x, y, as_array) {
+function unifyAll (x, y, as_array, defaults) {
     var r = [];
     var stack = [];
     do {
-        var ux = UniCtx(x, y);
+        var ux = UniCtx(x, y, defaults);
         ux.stack = stack;
         var u = unify(x, y, ux);
         if (!eq(u, Nothing)) {
             // TODO normalize
             World.bind(ux.newworld, u);
+            u.ux = ux;
             r.push(u);
         }
         stack = ux.stack;

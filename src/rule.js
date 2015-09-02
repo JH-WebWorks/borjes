@@ -57,26 +57,33 @@ function Rule ( mother, daughters, name, events ) {
  *
  * @param {Rule} rule - the rule to apply.
  * @param {Borjes[]} xs - the objects to try to unify with the daughters.
- * @return {Borjes|Nothing} if the rule is matched, then the mother is returned.
- * Otherwise, Nothing is returned.
+ * @return {Borjes[]} all the possibilities of unification result in a mother in
+ * this array. If it's empty, the rule has failed.
  */
 Rule.apply = function ( rule, xs ) {
     if (xs.length != rule.d.length) {
         if (!!rule.on.fail) { rule.on.fail(rule, xs, -1); }
         return Nothing;
     }
-    var w = World();
-    var lm = { w: rule.m.borjes_bound, nw: w };
-    for (var i=0; i<xs.length; i++) {
-        var u = unify(rule.d[i], xs[i], w, lm, { w: xs[i].borjes_bound, nw: w });
-        if (eq(u, Nothing)) {
-            if (!!rule.on.fail) { rule.on.fail(rule, xs, i); }
-            return Nothing;
+    var r = [];
+    function try_pair (i, ctx) {
+        if (i>=xs.length) {
+            var m = copy(rule.m, ctx.leftmap);
+            r.push(m);
+            if (!!rule.on.success) { rule.on.success(rule, xs, m); }
+        } else {
+            var us = unify(rule.d[i], xs[i], true, ctx);
+            us.forEach(function (u) {
+                try_pair(i+1, {newworld: u.ux.newworld, leftmap: u.ux.leftmap});
+            });
         }
     }
-    var m = copy(rule.m, lm);
-    if (!!rule.on.success) { rule.on.success(rule, xs, m); }
-    return m;
+    var nw = World();
+    try_pair(0, {newworld: nw, leftmap: {_w: rule.m.borjes_bound, _nw: nw}});
+    if (r.length == 0 && !!rule.on.fail) {
+        rule.on.fail(rule, xs, i);
+    }
+    return r;
 }
 
 module.exports = Rule;
