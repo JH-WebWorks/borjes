@@ -3,6 +3,7 @@
 var types = require('./types');
 var Tree = require('./tree');
 var Rule = require('./rule');
+var Principle = require('./principle');
 var Lexicon = require('./lexicon');
 
 var Nothing = types.Nothing;
@@ -12,6 +13,7 @@ function Parser ( grammar ) {
     return {
         borjes: 'parser',
         rules: grammar.rules,
+        principles: grammar.principles,
         lexicon: grammar.lexicon,
         table: [],
         n: 0
@@ -39,6 +41,21 @@ function all_legs ( p, from, to, n ) {
     return legs;
 };
 
+function apply_principles ( p, ms, success, i ) {
+    i = i || 0;
+    if (i>=p.principles.length) {
+        for (var j=0; j<ms.length; j++) {
+            success(ms[j]);
+        }
+    } else {
+        var prin = p.principles[i];
+        for (var j=0; j<ms.length; j++) {
+            var r = Principle.apply(prin, ms[j]);
+            apply_principles(p, r, success, i+1);
+        }
+    }
+}
+
 function exhaust ( p, from, to ) {
     p.table[from][to] = [];
     var cell = p.table[from][to];
@@ -49,8 +66,8 @@ function exhaust ( p, from, to ) {
             var mothers = Rule.apply(rule, legs[j].map(function(t) {
                 return t.node;
             }));
-            mothers.forEach(function(m) {
-                cell.push(Tree(m, legs[j]));
+            apply_principles(p, mothers, function(x) {
+                cell.push(Tree(x, legs[j]));
             });
         }
     }

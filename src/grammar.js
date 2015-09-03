@@ -7,10 +7,11 @@ var Lexicon = require('./lexicon');
  *
  * @param {Rule[]} [rules]
  * @param {Lexicon} [lexicon]
+ * @param {Principle[]} [principles]
  * @return {Grammar} a new grammar.
  * @TODO test with non-default values (especially that ternary reduce thing ;)
  */
-function Grammar (rules, lexicon) {
+function Grammar (rules, lexicon, principles) {
     /**
      * A grammar contains all the information necessary for the parser to turn
      * an input string (surface form) into a syntactic tree.
@@ -18,11 +19,13 @@ function Grammar (rules, lexicon) {
      * @typedef Grammar
      * @property {String} borjes - 'grammar'
      * @property {Rule[]} rules
+     * @property {Principle[]} principles
      * @property {Lexicon} lexicon
      */
     return {
         borjes: 'grammar',
         rules: rules || [],
+        principles: principles || [],
         ruleNames: rules ? rules.reduce(function(m, r, i) {
             m[r.name]=i; return m; }, {}): {},
         lexicon: lexicon || Lexicon(),
