@@ -59,12 +59,7 @@ Principle.apply = function ( ppl, x ) {
         else if (!!ppl.on.success) { ppl.on.success(ppl, x); }
         return [x];
     }
-    var nw = World();
-    var r = [];
-    u.forEach(function (u2) {
-        var u3 = unify(u2, ppl.c, true, { newworld: u2.ux.newworld, rightmap: u2.ux.leftmap });
-        u3.forEach(function (u4) { r.push(u4); });
-    });
+    var r = unify(ppl.c, x, true);
     if (r.length == 0 && !!ppl.on.fail) { ppl.on.fail(ppl, x); }
     if (r.length > 0 && !!ppl.on.success) { ppl.on.success(ppl, x, r); }
     return r;

@@ -86,7 +86,6 @@ function unifyAll (x, y, as_array, defaults) {
         ux.stack = stack;
         var u = unify(x, y, ux);
         if (!eq(u, Nothing)) {
-            // TODO normalize
             World.bind(ux.newworld, u);
             u.ux = ux;
             r.push(u);

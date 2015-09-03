@@ -594,8 +594,13 @@ function Variable ( world, value ) {
 Variable.copy = function ( x, map ) {
     var i;
     if (map) {
-        if (map[x.index] !== undefined) {
-            i = map[x.index];
+        var n = map[x.index];
+        if (n !== undefined) {
+            if (n == -1) {
+                return copy(World.get(map._w, x.index), map);
+            } else {
+                i = n;
+            }
         } else {
             i = World.put(map._nw,
                 copy(World.get(map._w, x.index),map));
@@ -868,6 +873,65 @@ function compare ( x, y, worldx, worldy ) {
     return false;
 }
 
+/**
+ * Counts appearances of variables in an object.
+ * @param {Borjes} x
+ * @param {World} w
+ * @param {Object} counts
+ */
+function ref_count (x, w, counts) {
+    if (typeof x !== 'object') { return; }
+    switch (x.borjes) {
+        case 'variable':
+            var i = x.index;
+            if (counts[i] !== undefined) {
+                counts[i] = counts[i]+1;
+            } else {
+                counts[i] = 1;
+                ref_count(World.get(w, i), w, counts);
+            }
+            break;
+        case 'tfstruct':
+            ref_count(x.type, w, counts);
+        case 'fstruct':
+            for (var i=0; i<x.f.length; i++) {
+                ref_count(x.v[x.f[i]], w, counts);
+            }
+            break;
+        case 'list':
+            ref_count(x.first, w, counts);
+            ref_count(x.rest, w, counts);
+            break;
+        case 'disjunct':
+            for (var i=0; i<x.a.length; i++) {
+                ref_count(x.a[i], w, counts);
+            }
+            break;
+    }
+}
+
+/**
+ * Normalizes a bound object.
+ *
+ * Removes variables bound to variables, and ones that are only used once.
+ * @param {Borjes} x - an object bound to a world.
+ * @return {Borjes} a copy with a normalized attached world.
+ */
+function normalize ( x ) {
+    var w = x.borjes_bound;
+    var counts = {};
+    ref_count(x, w, counts);
+    var i = 0;
+    var nw = World();
+    var map = { _nw: nw, _w: w };
+    for (var n in counts) {
+        if (counts[n]==1) {
+            map[n] = -1;
+        }
+    }
+    return copy(x, map);
+}
+
 module.exports = {
     Nothing: Nothing,
     Anything: Anything,
@@ -882,5 +946,6 @@ module.exports = {
     Predicate: Predicate,
     eq: eq,
     copy: copy,
-    compare: compare
+    compare: compare,
+    normalize: normalize
 };

@@ -8,6 +8,7 @@ var Lexicon = require('./lexicon');
 
 var Nothing = types.Nothing;
 var eq = types.eq;
+var normalize = types.normalize;
 
 function Parser ( grammar ) {
     return {
@@ -67,7 +68,7 @@ function exhaust ( p, from, to ) {
                 return t.node;
             }));
             apply_principles(p, mothers, function(x) {
-                cell.push(Tree(x, legs[j]));
+                cell.push(Tree(normalize(x), legs[j]));
             });
         }
     }
