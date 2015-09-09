@@ -68,7 +68,7 @@ Rule.apply = function ( rule, xs ) {
     var r = [];
     function try_pair (i, ctx) {
         if (i>=xs.length) {
-            var m = copy(rule.m, ctx.leftmap);
+            var m = copy(rule.m, ctx.leftmap, true);
             r.push(m);
             if (!!rule.on.success) { rule.on.success(rule, xs, m); }
         } else {

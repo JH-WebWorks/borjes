@@ -883,9 +883,10 @@ function eq ( x, y ) {
  *
  * @param {Borjes} x - the object to copy.
  * @param {WorldMap} [map] - a mapping from old world names to new ones.
+ * @param {boolean} [toplevel] - whether to copy a bound world
  * @return {Borjes}
  */
-function copy ( x, map ) {
+function copy ( x, map, toplevel ) {
     if (typeof x !== 'object' || primitive[x.borjes]) {
         return x;
     }
@@ -910,7 +911,7 @@ function copy ( x, map ) {
     } else if (x.borjes === 'set_sum') {
         c = Set.sum.copy(x, map);
     }
-    if (x.borjes_bound !== undefined) {
+    if (x.borjes_bound !== undefined && toplevel) {
         if (map !== undefined) {
             World.bind(map._nw, c);
         } else {
@@ -1024,7 +1025,7 @@ function normalize ( x ) {
             map[n] = -1;
         }
     }
-    return copy(x, map);
+    return copy(x, map, true);
 }
 
 module.exports = {
