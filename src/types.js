@@ -733,6 +733,89 @@ function compare_disjunct (x, y, wx, wy) {
     return true;
 }
 
+// SETS
+// ====
+
+/**
+ * Creates a set.
+ *
+ * @param {Borjes...} elements
+ * @return {Set}
+ */
+function Set () {
+    var a = [];
+    for (var i = 0; i<arguments.length; i++) {
+        a.push(arguments[i]);
+    }
+    /**
+     * A set is a collection of elements in which order doesn't matter.
+     *
+     * @typedef Set
+     * @property {String} borjes - 'set'
+     * @property {Borjes[]} e - the member elements.
+     */
+    return {
+        borjes: 'set',
+        e: a
+    };
+}
+
+/**
+ * Copies a set.
+ *
+ * @param {Set} x
+ * @param {WorldMap} map
+ * @return {Set}
+ */
+Set.copy = function (x, map) {
+    return {
+        borjes: 'set',
+        e: x.e.map(function (y) {
+            return copy(y, map);
+        })
+    };
+}
+
+/**
+ * Creates a direct sum.
+ *
+ * @param {Borjes} el - element.
+ * @param {Variable|Set} rest - the remainder of the set.
+ * @return {Set.sum}
+ */
+Set.sum = function (el, rest) {
+    /**
+     * A set sum represents a decomposition of an abstract set into a member
+     * element and a set with the rest of the elements. This decomposition
+     * materializes upon unification.
+     *
+     * @typedef Set.sum
+     * @property {String} borjes - 'set_sum'
+     * @property {Borjes} el - the member element.
+     * @property {Set} rest - the remainder of the set.
+     */
+    return {
+        borjes: 'set_sum',
+        el: el,
+        rest: rest
+    };
+}
+
+/**
+ * Copies a direct sum.
+ *
+ * @param {Set.sum} x
+ * @param {WorldMap} map
+ * @return {Set.sum}
+ */
+Set.sum.copy = function (x, map) {
+    return {
+        borjes: 'set_sum',
+        el: copy(x.el, map),
+        rest: copy(x.rest, map)
+    };
+}
+
 // PREDICATE
 // =========
 // TODO revise
@@ -822,6 +905,10 @@ function copy ( x, map ) {
         c = Predicate.copy(x, map);
     } else if (x.borjes === 'disjunct') {
         c = Disjunct.copy(x, map);
+    } else if (x.borjes === 'set') {
+        c = Set.copy(x, map);
+    } else if (x.borjes === 'set_sum') {
+        c = Set.sum.copy(x, map);
     }
     if (x.borjes_bound !== undefined) {
         if (map !== undefined) {
@@ -907,6 +994,14 @@ function ref_count (x, w, counts) {
                 ref_count(x.a[i], w, counts);
             }
             break;
+        case 'set':
+            for (var i=0; i<x.e.length; i++) {
+                ref_count(x.e[i], w, counts);
+            }
+        case 'set_sum':
+            ref_count(x.el, w, counts);
+            ref_count(x.rest, w, counts);
+            break;
     }
 }
 
@@ -943,6 +1038,7 @@ module.exports = {
     Variable: Variable,
     List: List,
     Disjunct: Disjunct,
+    Set: Set,
     Predicate: Predicate,
     eq: eq,
     copy: copy,

@@ -9,6 +9,7 @@ var FStruct = types.FStruct;
 var World = types.World;
 var Variable = types.Variable;
 var Lattice = types.Lattice;
+var Set = types.Set;
 var eq = types.eq;
 var copy = types.copy;
 
@@ -86,8 +87,10 @@ function unifyAll (x, y, as_array, defaults) {
         ux.stack = stack;
         var u = unify(x, y, ux);
         if (!eq(u, Nothing)) {
-            World.bind(ux.newworld, u);
-            u.ux = ux;
+            if (x.borjes_bound || y.borjes_bound) {
+                World.bind(ux.newworld, u);
+                u.ux = ux;
+            }
             r.push(u);
         }
         stack = ux.stack;
@@ -148,6 +151,12 @@ function unify (x, y, ux) {
     }
     if (x.borjes === 'list' && y.borjes === 'list') {
         return unifyLists(x, y, ux);
+    }
+    if (x.borjes === 'set_sum' && y.borjes === 'set') {
+        return unifyDSum(x, y, ux, true);
+    }
+    if (y.borjes === 'set_sum' && x.borjes === 'set') {
+        return unifyDSum(x, y, ux, false);
     }
     return Nothing;
 }
@@ -264,6 +273,46 @@ function unifyDisj (x, y, ux, left) {
         }
     }
     return u;
+}
+
+/**
+ * Unifies a direct sum with a set, decomposing it.
+ *
+ * @param {boolean} left - if true, x is a direct sum, otherwise y is.
+ * @see unify for the params.
+ */
+function unifyDSum (x, y, ux, left) {
+    var st = ux.stack;
+    var who = left ? x : y;
+    var list = left ? y : x;
+    var uip = who.borjes_uip;
+    var ix, u;
+    if (!uip) {
+        who.borjes_uip = { at: 0 };
+        uip = who.borjes_uip;
+        st.push(uip);
+    }
+    var u = left ? unify(x.el, y.e[uip.at], ux)
+                 : unify(x.e[uip.at], y.el, ux);
+    if (st[st.length-1] === uip) {
+        uip.at += 1;
+        if (uip.at >= list.e.length) {
+            st.pop();
+            delete who.borjes_uip;
+        }
+    }
+    if (eq(u, Nothing)) { return Nothing; }
+    var rem = [];
+    var map = left?ux.rightmap:ux.leftmap;
+    for (var i=0; i<list.e.length; i++) {
+        if (i!==uip.at-1) {
+            rem.push(copy(list.e[i], map));
+        }
+    }
+    var rest = left ? unify(x.rest, Set.apply(null, rem), ux)
+                    : unify(Set.apply(null, rem), y.rest, ux);
+    if (eq(rest, Nothing)) { return Nothing; }
+    return Set.sum(u, rest);
 }
 
 module.exports = unifyAll;

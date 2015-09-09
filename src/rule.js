@@ -74,7 +74,12 @@ Rule.apply = function ( rule, xs ) {
         } else {
             var us = unify(rule.d[i], xs[i], true, ctx);
             us.forEach(function (u) {
-                try_pair(i+1, {newworld: u.ux.newworld, leftmap: u.ux.leftmap});
+                var def = {};
+                if (u.ux) {
+                    def.newworld = u.ux.newworld;
+                    def.leftmap = u.ux.leftmap;
+                }
+                try_pair(i+1, def);
             });
         }
     }

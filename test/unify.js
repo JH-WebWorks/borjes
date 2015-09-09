@@ -1,7 +1,19 @@
 var assert = require('assert');
 
 var types = require('../src/types');
-var U = require('../src/unify');
+var unify = require('../src/unify');
+
+function U (x, y) {
+    var u = unify(x, y);
+    if (u.length!==undefined) {
+        for (var i = 0; i<u.length; i++) {
+            delete u[i].ux;
+        }
+    } else {
+        delete u.ux;
+    }
+    return u;
+}
 
 var Nothing = types.Nothing;
 var Anything = types.Anything;
@@ -12,6 +24,7 @@ var Variable = types.Variable;
 var List = types.List;
 var Lattice = types.Lattice;
 var Disjunct = types.Disjunct;
+var Set = types.Set;
 var eq = types.eq;
 var compare = types.compare;
 
@@ -183,3 +196,27 @@ var res_d5 = U(disjvars, FStruct({ v: e_o_f }));
 assert(res_d5.length === 2);
 assert(compare(res_d5[0], FStruct({ v: els.e })));
 assert(compare(res_d5[1], FStruct({ v: els.f })));
+
+/* Sets */
+var set1 = Set(els.a, els.c, els.d);
+
+var setworld = World();
+var dsum = Set.sum(Variable(setworld, els.e), Variable(setworld));
+World.bind(setworld, dsum);
+var res_s1 = U(set1, dsum);
+
+assert(res_s1.length === 2);
+assert(compare(World.resolve(res_s1[0].borjes_bound, res_s1[0].el), els.b) ||
+       compare(World.resolve(res_s1[1].borjes_bound, res_s1[1].el), els.b));
+assert(compare(World.resolve(res_s1[0].borjes_bound, res_s1[0].el), els.d) ||
+       compare(World.resolve(res_s1[1].borjes_bound, res_s1[1].el), els.d));
+
+var setw2 = World();
+var dsum2 = Set.sum(els.e, Variable(setw2));
+World.bind(setw2, dsum2);
+var nested = Disjunct(Set(els.a, els.d), Set(els.c));
+var res_s2 = U(dsum2, nested);
+
+assert(res_s2.length === 2);
+assert(compare(res_s2[0].el, els.d));
+assert(compare(res_s2[1].el, els.b));
