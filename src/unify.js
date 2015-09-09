@@ -87,10 +87,8 @@ function unifyAll (x, y, as_array, defaults) {
         ux.stack = stack;
         var u = unify(x, y, ux);
         if (!eq(u, Nothing)) {
-            if (x.borjes_bound || y.borjes_bound) {
-                World.bind(ux.newworld, u);
-                u.ux = ux;
-            }
+            World.bind(ux.newworld, u);
+            u.ux = ux;
             r.push(u);
         }
         stack = ux.stack;
