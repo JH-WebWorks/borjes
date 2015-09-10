@@ -216,6 +216,10 @@ function unifyVar (x, y, ux, left) {
     var who = left ? x.index : y.index;
     if (map[who] !== undefined) {
         v = World.get(ux.newworld, map[who]);
+        while (v && v.borjes === 'variable') {
+            map[who] = v.index;
+            v = World.get(ux.newworld, v.index);
+        }
     } else {
         v = World.get(map._w, who);
     }

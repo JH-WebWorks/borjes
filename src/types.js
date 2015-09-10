@@ -602,9 +602,10 @@ Variable.copy = function ( x, map ) {
                 i = n;
             }
         } else {
-            i = World.put(map._nw,
-                copy(World.get(map._w, x.index),map));
-            map[x.index] = i;
+            var r = Variable(map._nw);
+            map[x.index] = r.index;
+            World.set(map._nw, r.index, copy(World.get(map._w, x.index), map));
+            return r;
         }
     } else {
         i = x.index;
