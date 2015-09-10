@@ -302,6 +302,9 @@ function unifyDSum (x, y, ux, left) {
     var list = left ? y : x;
     var uip = who.borjes_uip;
     var ix, u;
+    if (list.borjes !== 'set' || list.e.length == 0) {
+        return Nothing;
+    }
     if (!uip) {
         who.borjes_uip = { at: 0 };
         uip = who.borjes_uip;
