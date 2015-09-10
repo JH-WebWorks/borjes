@@ -203,6 +203,12 @@ function unifyTFS (x, y, ux) {
     return mgu;
 }
 
+// TODO solve this hack
+var ID_MAP = {};
+for (var i=0; i<100; i++) {
+    ID_MAP[i] = i;
+}
+
 /**
  * Unifies a variable with another object (possibly binding its value).
  *
@@ -211,19 +217,26 @@ function unifyTFS (x, y, ux) {
  * @see unify for the rest of the params.
  */
 function unifyVar (x, y, ux, left) {
-    var v;
+    var v, old;
     var map = left ? ux.leftmap : ux.rightmap;
     var who = left ? x.index : y.index;
     if (map[who] !== undefined) {
         v = World.get(ux.newworld, map[who]);
-        while (v && v.borjes === 'variable') {
-            map[who] = v.index;
-            v = World.get(ux.newworld, v.index);
+        if (left) {
+            old = ux.leftmap;
+            ux.leftmap = ID_MAP;
+        } else {
+            old = ux.rightmap;
+            ux.rightmap = ID_MAP;
         }
     } else {
         v = World.get(map._w, who);
     }
     var u = left ? unify(v, y, ux) : unify(x, v, ux);
+    if (old) {
+        if (left) { ux.leftmap = old; }
+        else { ux.rightmap = old; }
+    }
     if (u !== undefined && eq(u, Nothing)) { return Nothing; }
     var r;
     if (map[who] !== undefined) {
