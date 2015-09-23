@@ -156,6 +156,9 @@ function unify (x, y, ux) {
     if (y.borjes === 'set_sum' && x.borjes === 'set') {
         return unifyDSum(x, y, ux, false);
     }
+    if (x.borjes === 'set' && y.borjes === 'set') {
+        return unifySets(x, y, ux);
+    }
     return Nothing;
 }
 
@@ -331,6 +334,22 @@ function unifyDSum (x, y, ux, left) {
                     : unify(Set.apply(null, rem), y.rest, ux);
     if (eq(rest, Nothing)) { return Nothing; }
     return Set.sum(u, rest);
+}
+
+/**
+ * Unifies two sets.
+ *
+ * @TODO unify non-empty sets
+ * @param {Set} x
+ * @param {Set} y
+ * @see unify for ux
+ */
+function unifySets (x, y, ux) {
+    if (x.e.length == 0 && y.e.length == 0) {
+        return Set();
+    } else {
+        return Nothing;
+    }
 }
 
 module.exports = unifyAll;
