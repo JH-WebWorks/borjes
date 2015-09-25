@@ -11,5 +11,6 @@ exports.types = require('./types');
 exports.unify = require('./unify');
 
 var grammar = require('./grammar');
-grammar.CFG = require('./cfg');
+grammar.from_YAML = require('./from_yaml');
+grammar.from_JSON = require('./from_json');
 exports.Grammar = grammar;

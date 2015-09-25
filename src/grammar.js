@@ -25,9 +25,11 @@ function Grammar (rules, lexicon, principles) {
     return {
         borjes: 'grammar',
         rules: rules || [],
-        principles: principles || [],
         ruleNames: rules ? rules.reduce(function(m, r, i) {
             m[r.name]=i; return m; }, {}): {},
+        principles: principles || [],
+        principleNames: principles ? principles.reduce(function(m, p, i) {
+            m[p.name]=i; return m; }, {}): {},
         lexicon: lexicon || Lexicon(),
     };
 }
@@ -45,6 +47,22 @@ Grammar.set_rule = function (grammar, rule) {
         grammar.rules[i] = rule;
     } else {
         grammar.ruleNames[rule.name] = grammar.rules.push(rule) - 1;
+    }
+};
+
+/**
+ * Adds a principle to a grammar. If a principle with the same name already exists, it is
+ * replaced.
+ *
+ * @param {Grammar} grammar
+ * @param {Principle} pple
+ */
+Grammar.set_principle = function (grammar, pple) {
+    var i = grammar.principleNames[pple.name];
+    if (i !== undefined) {
+        grammar.principles[i] = pple;
+    } else {
+        grammar.principleNames[pple.name] = grammar.principles.push(pple) - 1;
     }
 };
 

@@ -16,7 +16,8 @@ var formatter = Borjes.formatter;
 var grammarfile = process.argv[2];
 var testfile = process.argv[3];
 
-var grammar = Grammar.from_YAML(fs.readFileSync(grammarfile));
+var grammar = Grammar();
+Grammar.from_JSON(grammar, JSON.parse(fs.readFileSync(grammarfile, 'utf8')));
 var sentences = fs.readFileSync(testfile, 'utf8').split('\n');
 
 var p = Parser(grammar);
@@ -26,15 +27,10 @@ function test(i) {
     var sentence = sentences[i].split(' ');
     var parse = Parser.parse(p, sentence);
     if (parse === Nothing) {
-        console.log("Wrong parse for '"+sentences[i]+"'");
+        console.log("No parse for '"+sentences[i]+"'");
         console.log(util.inspect(p.table, { depth: null, colors: true }));
     } else {
         console.log("OK '"+sentences[i]+"'");
-        var detail = '';
-        for (var j = 0; j<parse.length; j++) {
-            detail += ' '+formatter.flist(parse[j].node, 'symbol');
-        }
-        console.log(detail);
     }
 }
 
