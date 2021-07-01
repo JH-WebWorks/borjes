@@ -16,14 +16,14 @@ var World = types.World;
  * @param {function} events.false_antecedent
  * @param {function} events.fail
  * @param {function} events.success
- * @return {Principle} a new principle.
+ * @return {Abbreviation} a new principle.
  */
 function Abbreviation(fs, name, events) {
   /**
    * A principle has an antecedent, which if matches forces the object to also
    * match the consequent.
    *
-   * @typedef Principle
+   * @typedef Abbreviation
    * @property {String} borjes - 'principle'
    * @property {Borjes} antecedent
    * @property {Borjes} consequent
